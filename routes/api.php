@@ -12,7 +12,8 @@
  */
 
 Route::middleware('auth.basic')->group(function () {
-    Route::get('users', 'UsersController@index');
+    Route::resource('users', 'UsersController')->only('index', 'store');
+
     Route::get('users/me', 'UsersController@index');
 
     Route::get('users/me', 'UsersController@show');
@@ -22,4 +23,4 @@ Route::middleware('auth.basic')->group(function () {
     Route::resource('elections', 'ElectionsController')->only('index', 'store', 'show');
 });
 
-Route::post('users', 'UsersController@create');
+// Route::post('users', 'UsersController@create');

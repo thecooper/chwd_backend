@@ -15,7 +15,17 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'address_line_1', 'address_line_2', 'city', 'state', 'zip', 'stateAbbv',
+        'name', 
+        'email', 
+        'password', 
+        'address_line_1', 
+        'address_line_2', 
+        'city', 
+        'state', 
+        'zip', 
+        'state_abbreviation',
+        'congressional_district',
+        'state_legislative_district',
     ];
 
     /**
@@ -24,7 +34,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'stateAbbv',
+        'password', 'remember_token',
     ];
 
     public function ballots()

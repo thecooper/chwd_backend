@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\GeocodioAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -26,34 +27,7 @@ class UsersController extends Controller
      */
     public function create(Request $request)
     {
-        try {
-            $inputParams = $request->all();
-            validator($inputParams)->validate();
-
-            // if (!isset($inputParams['address_line_2'])) {
-            //     $inputParams['address_line_2'] = '<blank>';
-            // }
-
-            $newUser = User::create([
-                'name' => $inputParams['name'],
-                'email' => $inputParams['email'],
-                'password' => Hash::make($inputParams['password']),
-                'address_line_1' => $inputParams['address_line_1'],
-                'address_line_2' => $inputParams['address_line_2'],
-                'city' => $inputParams['city'],
-                'state' => $inputParams['state'],
-                'zip' => $inputParams['zip'],
-                'stateAbbv' => $inputParams['stateAbbv'],
-            ]);
-
-            // event(new Registered($newUser));
-
-            return response()->json($newUser, 201);
-        } catch (Exception $ex) {
-            return response()->json([
-                "error" => "could not create new user",
-            ], 400);
-        }
+        throw new Exception("Not Implemented");
     }
 
     /**
@@ -64,7 +38,47 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        throw new Exception("Not yet implemented");
+        try {
+
+            $input_params = $request->all();
+            validator($input_params)->validate();
+
+            $address_line_1 = $input_params['address_line_1'];
+            $address_line_2 = $input_params['address_line_2'];
+            $city = $input_params['city'];
+            $state_abbreviation = $input_params['state_abbreviation'];
+            $zip = $input_params['zip'];
+
+            $geocodioAPI = new GeocodioAPI();
+
+            $geocodio_results = $geocodioAPI->get_geolocation_information($address_line_1, $address_line_2, $state_abbreviation, $city, $zip);
+            
+            if(isset($geocodio_results['error'])) {
+                return response()->json($geocodio_results['error'], 500);
+            }
+
+            $newUser = User::create([
+                'name' => $input_params['name'],
+                'email' => $input_params['email'],
+                'password' => Hash::make($input_params['password']),
+                'address_line_1' => $address_line_1,
+                'address_line_2' => $address_line_2,
+                'city' => $city,
+                'zip' => $zip,
+                'state_abbreviation' => $state_abbreviation,
+                'congressional_district' => $geocodio_results[0],
+                'state_legislative_district' => $geocodio_results[1]
+            ]);
+
+            
+            // event(new Registered($newUser));
+
+            return response()->json($newUser, 201);
+        } catch (Exception $ex) {
+            return response()->json([
+                "error" => "could not create new user",
+            ], 400);
+        }
     }
 
     /**
@@ -121,9 +135,8 @@ class UsersController extends Controller
             'address_line_1' => 'required|string',
             'address_line_2' => 'required|string',
             'city' => 'required|string',
-            'state' => 'required|string',
+            'state_abbreviation' => 'required|string|max:2',
             'zip' => 'required|string',
-            'stateAbbv' => 'required|string|max:2',
         ]);
     }
 }
