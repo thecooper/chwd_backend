@@ -17,15 +17,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 
         'email', 
-        'password', 
-        'address_line_1', 
-        'address_line_2', 
-        'city', 
-        'state', 
-        'zip', 
-        'state_abbreviation',
-        'congressional_district',
-        'state_legislative_district',
+        'password'
     ];
 
     /**
@@ -39,6 +31,6 @@ class User extends Authenticatable
 
     public function ballots()
     {
-        $this->hasMany("App\Userballot");
+        return $this->hasMany("App\UserBallot");
     }
 }

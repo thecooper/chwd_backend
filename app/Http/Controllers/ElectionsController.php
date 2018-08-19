@@ -24,13 +24,16 @@ class ElectionsController extends Controller
      */
     public function index(Request $request)
     {
-        if (isset($request)) {
-            $elections = ConsolidatedElection::all();
+        $state_abbreviation = $request->query('state', null);
+        // $county = $request->query('county', null);
+        
+        $elections = new ConsolidatedElection();
 
-            return response()->json($elections, 200);
-        } else {
-            return "Could not find request object";
+        if($state_abbreviation != null) {
+            $elections = $elections->where('state_abbreviation', $state_abbreviation);
         }
+
+        return response()->json($elections->get(), 200);
     }
 
     /**

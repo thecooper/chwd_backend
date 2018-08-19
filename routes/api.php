@@ -11,12 +11,33 @@
 |
  */
 
+use App\UserBallot;
+ 
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index', 'store');
 
     Route::get('users/me', 'UsersController@index');
-
     Route::get('users/me', 'UsersController@show');
+
+    Route::get('users/me/ballots', function() {
+        $user = Auth::user();
+        $ballot_list = array();
+
+        foreach($user->ballots as $ballot) {
+            $ballot_array = array(
+                "id" => $ballot["id"],
+                "address_line_1" => $ballot["address_line_1"],
+                "address_line_2" => $ballot["address_line_2"],
+                "city" => $ballot["city"],
+                "state_abbreviation" => $ballot["state_abbreviation"],
+                "zip" => $ballot["zip"],
+            );
+
+            array_push($ballot_list, $ballot_array);
+        }
+
+        return response()->json($ballot_list, 200);
+    });
 
     Route::get('candidates', 'CandidatesController@index');
 
