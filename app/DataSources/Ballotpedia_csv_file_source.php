@@ -3,12 +3,49 @@
 namespace App\DataSources;
 
 use App\Candidate;
+use App\Models\Election\ElectionConsolidator;
+use App\Models\Election\Election;
+use App\DataSource;
 
 class Ballotpedia_CSV_File_Source implements IDataSource
 {
-    public function __constructor()
-    {
+    private static $column_mapping = array(
+        "state" => 0,
+        "name" => 1,
+        "url" => 2,
+        "candidates_id" => 3,
+        "party" => 4,
+        "race_id" => 5,
+        "election_dates_id" => 6,
+        "election_dates_district_id" => 7,
+        "election_dates_district_name" => 8,
+        "general_election_date" => 9,
+        "general_runoff_election" => 10,
+        "general_runoff_election_date" => 11,
+        "office_district_id" => 12,
+        "district_name" => 13,
+        "district_type" => 14,
+        "office_level" => 15,
+        "office" => 16,
+        "is_incumbent" => 17,
+        "general_election_status" => 18,
+        "website_url" => 19,
+        "facebook_profile" => 20,
+        "twitter_handle" => 21
+    );
 
+    private $field_mapper;
+    private $election_consolidator;
+    private $data_source_id;
+
+    function __construct(ElectionConsolidator $election_consolidator)
+    {
+        $this->field_mapper = new FieldMapper(Ballotpedia_CSV_File_Source::$column_mapping);
+        $this->election_consolidator = $election_consolidator;
+
+        $ballotpedia_data_source = DataSource::where('name', 'Ballotpedia')->firstOrFail();
+        // TODO: Some null checking for ballotpedia_data_source
+        $this->data_source_id = $ballotpedia_data_source->id;
     }
 
     public function Process()
@@ -16,46 +53,33 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $data_source_directory = "C:\\temp";
         $file_processed_count = 0;
 
+        $processed_election_ids = array();
+
         foreach (DirectoryScanner::getFileHandles($data_source_directory) as $file_handle) {
             if ($file_handle != false) {
                 $file_processed_count++;
                 $header_read = false;
-
+               
                 while ($line = fgets($file_handle)) {
                     if (!$header_read) {
                         $header_read = true;
                         continue;
                     }
 
-                    $segments = explode(",", $line);
+                    $fields = explode(",", $line);
 
-                    list($state_abbreviation, $name, , $candidate_id, $party, $race_id, $office, $office_level, $district_type,
-                        $is_incumbent, $election_status, $website_url, $facebook_profile, $twitter_handle) = $segments;
+                    $this->field_mapper->load_fields($fields);
 
-                    $candidate = new Candidate();
-
-                    $candidate->name = $name;
-                    $candidate->party_affiliation = $party;
-                    $candidate->website_url = $website_url;
-                    $candidate->election_id = null;
-                    $candidate->donate_url = "";
-                    $candidate->facebook_profile = $facebook_profile;
-                    $candidate->twitter_handle = $twitter_handle;
-                    $candidate->gender = "?";
-                    $candidate->election_office = $office;
-                    $candidate->election_status = $election_status;
-                    $candidate->birthdate = date("Y-m-d");
-                    $candidate->data_source_id = 1;
-                    $candidate->is_incumbent = (strtolower($is_incumbent) == "yes" ? true : false);
-
-                    try {
-                        if (!$candidate->save()) {
-                            // Log the error here
-                        }
-                    } catch (Exception $ex) {
-                        // Log error here and fail gracefully
-                        throw $ex;
+                    $election_dates_id = $this->field_mapper->get_value("election_dates_id");
+                    
+                    if(false == array_search($election_dates_id, $processed_election_ids)) {
+                        $new_election_id = $this->save_election();
+                        $processed_election_ids[$election_dates_id] = $new_election_id;
                     }
+                    
+                    $translated_eleciton_id = $processed_election_ids[$election_dates_id];
+
+                    $this->persist_candidate($translated_eleciton_id);
                 }
             }
         }
@@ -65,6 +89,175 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
     public function CanProcess()
     {
+        return true;
+    }
+    
+    private function save_election() {
+        
+        $election_name = $this->election_name_generator();
+        
+        $election = Election::where('data_source_id', $this->data_source_id)->where('name', $election_name)->first();
+
+        if($election == null) {
+            $election = new Election();
+        }
+        
+        $state_abbreviation = $this->field_mapper->get_value("state");
+        $election_date = "";
+        $is_runoff = false;
+
+        if($this->field_mapper->has_value("general_election_date")) {
+            $election_date = $this->field_mapper->get_value("general_election_date");
+        } else if($this->field_mapper->has_value("general_runoff_election_date")) {
+            $election_date = $this->field_mapper->get_value("general_runoff_election_date");
+            $is_runoff = true;
+        }
+        
+        $election->name = $election_name;
+        $election->state_abbreviation = $state_abbreviation;
+        $election->election_date = $election_date;
+        $election->is_special = false;
+        $election->is_runoff = $is_runoff;
+        $election->data_source_id = $this->data_source_id;
+        $election->election_type = ($is_runoff ? "runoff" : "general");
+
+        if(!$election->save()) {
+            //TODO: log issue and/or throw exception if election doesn't save properly;
+        }
+
+        $consolidated_election = $this->election_consolidator->consolidate($election_name);
+
+        return $consolidated_election->id;
+    }
+
+    private function election_name_generator() {
+        $election_name_segments = array(
+            $this->field_mapper->get_value("election_dates_district_name")
+        );
+        
+        $general_election_date = new \DateTime($this->field_mapper->get_value("general_election_date"));
+        $general_runoff_election_date = new \DateTime($this->field_mapper->get_value("general_runoff_election_date"));
+        $election_year = "";
+
+        if($general_election_date != null && $general_election_date != "") {
+            array_push($election_name_segments, "General");
+            $election_year = date_format($general_election_date, "Y");
+        } elseif ($general_runoff_election_date != null && $general_runoff_election_date != "") {
+            array_push($general_runoff_election_date, "General Runoff");
+            $election_year = date_format($general_election_date, "Y");
+        } else {
+            throw new \Exception("Unable to determine election year"); //TODO: to better error messaging here to be able to diagnose what rows aren't parsable.
+        }
+
+        array_push($election_name_segments, "Election");
+        array_push($election_name_segments, $election_year);
+
+        return implode(" ", $election_name_segments);
+    }
+
+    private function persist_candidate($linking_election_id) {
+        $candidate_name = $this->field_mapper->get_value("name");
+        $candidate_office_level = $this->field_mapper->get_value("office_level");
+        $candidate_district = $this->field_mapper->get_value("district_name");
+        $candidate_district_type = $this->field_mapper->get_value("district_type");
+        
+        $state = $this->field_mapper->get_value("state");
+
+        $candidate = Candidate::where('name', $candidate_name)
+            ->where('office_level', $candidate_office_level)
+            ->where('district', $candidate_district)
+            ->where('district_type', $candidate_district_type)
+            ->first();
+
+        $district_identifier = $this->derive_district_identifier($candidate_district);
+            
+        if($candidate == null) { $candidate = new Candidate(); }
+        
+        $candidate->name = $this->field_mapper->get_value("name");
+        $candidate->party_affiliation = $this->field_mapper->get_value("party");
+        $candidate->website_url = $this->field_mapper->get_value("website_url");
+        $candidate->election_id = $linking_election_id;
+        $candidate->donate_url = "";
+        $candidate->facebook_profile = $this->field_mapper->get_value("facebook_profile");
+        $candidate->twitter_handle = $this->field_mapper->get_value("twitter_handle");
+        $candidate->gender = "?";
+        $candidate->election_office = $this->field_mapper->get_value("office");
+        $candidate->election_status = $this->field_mapper->get_value("general_election_status");
+        $candidate->birthdate = date("Y-m-d");
+        $candidate->data_source_id = $this->data_source_id;
+        
+        $is_incumbent = false;
+        if($this->field_mapper->has_value("is_incumbent")) {
+            $is_incumbent = strtolower($this->field_mapper->get_value("is_incumbent")) == "yes" ? true : false;
+        }
+
+        $candidate->is_incumbent = (strtolower($is_incumbent) == "yes" ? true : false);
+        $candidate->name = $candidate_name;
+        $candidate->office_level = $candidate_office_level;
+        $candidate->district = $candidate_district;
+        $candidate->district_number = $district_identifier;
+        $candidate->district_type = $candidate_district_type;
+
+        try {
+            if (!$candidate->save()) {
+                // Log the error here
+            }
+        } catch (Exception $ex) {
+            // Log error here and fail gracefully
+            throw $ex;
+        }
+    }
+
+    private function derive_district_identifier($district_name) {
+        $match_count = preg_match_all("/District ([\d\w]+)|Circuit Place ([\d]+)/", $district_name, $matches, PREG_SET_ORDER);
+        
+        if($match_count == 0 || $match_count == false) {
+            return null;
+        }
+
+        $id = $matches[0][1];
+
+        var_dump($id);
+
+        return $id;
+    }
+}
+
+class FieldMapper {
+    private $column_mapping;
+    private $field_set = null;
+
+    function __construct($column_mapping) {
+        $this->column_mapping = $column_mapping;
+    }
+
+    public function load_fields($fields) {
+        $this->field_set = $fields;
+    }
+
+    public function get_value($field_name) {
+        if(!$this->has_value($field_name)) {
+            return null;
+        }
+        
+        return $this->field_set[$this->column_mapping[$field_name]];
+    }
+
+    public function has_value($field_name) {
+        if($this->field_set == null) {
+            throw new \Exception("FieldMapper::get_value() - fields have not yet been set");
+        }
+        
+        if(!array_key_exists($field_name, $this->column_mapping)) {
+            return false;
+        }
+
+        $field_index = $this->column_mapping[$field_name];
+        
+        if(!array_key_exists($field_index, $this->field_set)) {
+            return false;
+        }
+
         return true;
     }
 }
