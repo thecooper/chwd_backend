@@ -44,6 +44,14 @@ Route::middleware('auth.basic')->group(function () {
     Route::resource('elections', 'ElectionsController')->only('index', 'store', 'show');
 });
 
+Route::get('/import', function (Ballotpedia_CSV_File_Source $source_processor) {
+    if ($source_processor->CanProcess()) {
+        $file_count = $source_processor->Process();
+    }
+
+    return "Processed {$file_count} files";
+});
+
 Route::post('users', 'UsersController@store');
 
 // Route::post('users', 'UsersController@create');

@@ -17,14 +17,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/import', function (Ballotpedia_CSV_File_Source $source_processor) {
-    if ($source_processor->CanProcess()) {
-        $file_count = $source_processor->Process();
-    }
-
-    return "Processed {$file_count} files";
-});
-
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
