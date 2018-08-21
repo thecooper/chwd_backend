@@ -14,7 +14,7 @@
 use App\UserBallot;
  
 Route::middleware('auth.basic')->group(function () {
-    Route::resource('users', 'UsersController')->only('index', 'store');
+    Route::resource('users', 'UsersController')->only('index');
 
     Route::get('users/me', 'UsersController@index');
     Route::get('users/me', 'UsersController@show');
@@ -43,5 +43,7 @@ Route::middleware('auth.basic')->group(function () {
 
     Route::resource('elections', 'ElectionsController')->only('index', 'store', 'show');
 });
+
+Route::post('users', 'UsersController@store');
 
 // Route::post('users', 'UsersController@create');
