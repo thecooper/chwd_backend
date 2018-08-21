@@ -12,6 +12,7 @@
  */
 
 use App\UserBallot;
+use App\DataSources\Ballotpedia_CSV_File_Source;
  
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index');
