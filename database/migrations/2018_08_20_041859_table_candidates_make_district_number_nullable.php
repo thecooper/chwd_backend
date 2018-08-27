@@ -26,7 +26,7 @@ class TableCandidatesMakeDistrictNumberNullable extends Migration
     public function down()
     {
         Schema::table('candidates', function(Blueprint $table) {
-            $table->string('district_number')->nullable(false)->change();
+            $table->string('district_number')->default('')->nullable(false)->change();
         });
     }
 }

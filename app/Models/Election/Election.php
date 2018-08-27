@@ -36,29 +36,46 @@ class Election extends Model
             throw new \InvalidArgumentException("input \$inputs is expected to be an array");
         }
 
+        $this->consolidated_election_id = $inputs['consolidated_election_id'];
         $this->name = $inputs['name'];
         $this->state_abbreviation = $inputs['state_abbreviation'];
-        $this->county = $inputs['county'];
-        $this->district = $inputs['district'];
-        $this->primary_date = $inputs['primary_date'];
-        $this->general_date = $inputs['general_date'];
+        $this->election_date = $inputs['election_date'];
         $this->is_special = $inputs['is_special'];
         $this->is_runoff = $inputs['is_runoff'];
         $this->data_source_id = $inputs['data_source_id'];
+        // $this->election_type = $inputs['election_type']; this can be derived from is_special and is_runoff
     }
 
     public static function createOrUpdate($inputs)
     {
-        $election = Election::findByCompositeKey($inputs["name"], $inputs["data_source_id"])->first();
+        $consolidated_election = ConsolidatedElection::where('name', $inputs['name'])->first();
+        // $new_consolidated_election = false;
 
-        if ($election == null) {
-            $election = new Election();
+        if($consolidated_election == null) {
+            $new_consolidated_election = true;
+            $consolidated_election = new ConsolidatedElection();
+            $consolidated_election->load($inputs);
+            $consolidated_election->save();
+
+            $new_election = new Election();
+            $new_election->load($inputs);
+            $new_election->save();
+
+            return $new_election;
+        } else {
+            $election = Election::findByCompositeKey($inputs["name"], $inputs["data_source_id"])->first();
+    
+            if ($election == null) {
+                $election = new Election();
+            }
+    
+            $inputs['consolidated_election_id'] = $consolidated_election->id;
+            
+            $election->load($inputs);
+    
+            $election->save();
+            
+            return $election;
         }
-
-        $election->load($inputs);
-
-        $election->save();
-
-        return $election;
     }
 }

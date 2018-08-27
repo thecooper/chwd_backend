@@ -4,6 +4,7 @@ namespace App\DataSources;
 
 use App\Candidate;
 use App\Models\Election\ElectionConsolidator;
+use App\Models\Election\ConsolidatedElection;
 use App\Models\Election\Election;
 use App\DataSource;
 
@@ -12,11 +13,13 @@ class Ballotpedia_CSV_File_Source implements IDataSource
     private static $column_mapping = array(
         "state" => 0,
         "name" => 1,
-        "url" => 2,
-        "candidates_id" => 3,
-        "party" => 4,
+        "first_name" => 2,
+        "last_name" => 3,
+        "url" => 4,
+        "candidates_id" => 5,
+        "party" => 6,
         "race_id" => 5,
-        "election_dates_id" => 6,
+        "election_date_id" => 6,
         "election_dates_district_id" => 7,
         "election_dates_district_name" => 8,
         "general_election_date" => 9,
@@ -70,14 +73,14 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
                     $this->field_mapper->load_fields($fields);
 
-                    $election_dates_id = $this->field_mapper->get_value("election_dates_id");
+                    $election_date_id = $this->field_mapper->get_value("election_date_id");
                     
-                    if(false == array_search($election_dates_id, $processed_election_ids)) {
-                        $new_election_id = $this->save_election();
-                        $processed_election_ids[$election_dates_id] = $new_election_id;
+                    if(false == array_search($election_date_id, $processed_election_ids)) {
+                        $new_election_id = $this->save_election($this->field_mapper->get_fields());
+                        $processed_election_ids[$election_date_id] = $new_election_id;
                     }
                     
-                    $translated_eleciton_id = $processed_election_ids[$election_dates_id];
+                    $translated_eleciton_id = $processed_election_ids[$election_date_id];
 
                     $this->persist_candidate($translated_eleciton_id);
                 }
@@ -92,42 +95,29 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         return true;
     }
     
-    private function save_election() {
-        
-        $election_name = $this->election_name_generator();
-        
-        $election = Election::where('data_source_id', $this->data_source_id)->where('name', $election_name)->first();
+    private function save_election($fields) {
+        $election_fields = array();
 
-        if($election == null) {
-            $election = new Election();
+        $election_fields['name'] = $this->election_name_generator();
+        $election_fields['consolidated_election_id'] = null;
+        $election_fields['state_abbreviation'] = $fields['state'];
+        $election_fields['election_date'] = "";
+        $election_fields['is_runoff'] = false;
+
+        if(array_key_exists("general_election_date", $fields)) {
+            $election_fields['election_date'] = $fields["general_election_date"];
+        } else if(array_key_exists("general_runoff_election_date", $fields)) {
+            $election_fields['election_date'] = $fields["general_runoff_election_date"];
+            $election_fields['is_runoff'] = true;
         }
         
-        $state_abbreviation = $this->field_mapper->get_value("state");
-        $election_date = "";
-        $is_runoff = false;
+        $election_fields['is_special'] = false;
+        $election_fields['data_source_id'] = $this->data_source_id;
+        $election_fields['election_type'] = ($is_runoff ? "runoff" : "general");
 
-        if($this->field_mapper->has_value("general_election_date")) {
-            $election_date = $this->field_mapper->get_value("general_election_date");
-        } else if($this->field_mapper->has_value("general_runoff_election_date")) {
-            $election_date = $this->field_mapper->get_value("general_runoff_election_date");
-            $is_runoff = true;
-        }
-        
-        $election->name = $election_name;
-        $election->state_abbreviation = $state_abbreviation;
-        $election->election_date = $election_date;
-        $election->is_special = false;
-        $election->is_runoff = $is_runoff;
-        $election->data_source_id = $this->data_source_id;
-        $election->election_type = ($is_runoff ? "runoff" : "general");
+        $updated_or_created_election = Election::createOrUpdate($election_fields);
 
-        if(!$election->save()) {
-            //TODO: log issue and/or throw exception if election doesn't save properly;
-        }
-
-        $consolidated_election = $this->election_consolidator->consolidate($election_name);
-
-        return $consolidated_election->id;
+        return $updated_or_created_election->id;
     }
 
     private function election_name_generator() {
@@ -135,8 +125,25 @@ class Ballotpedia_CSV_File_Source implements IDataSource
             $this->field_mapper->get_value("election_dates_district_name")
         );
         
-        $general_election_date = new \DateTime($this->field_mapper->get_value("general_election_date"));
-        $general_runoff_election_date = new \DateTime($this->field_mapper->get_value("general_runoff_election_date"));
+        $general_election_date = null;
+        $general_runoff_election_date = null;
+        
+        $general_election_date_value = $this->field_mapper->get_value("general_election_date");
+        $general_runoff_election_date_value = $this->field_mapper->get_value("general_runoff_election_date");
+
+        try {
+            $general_election_date = new \DateTime($general_election_date_value);
+        } catch (Exception $ex) {
+            print_r("Here");
+            throw new \Exception("Unable to parse date for field general_election_date: " . $general_election_date_value);
+        }
+
+        try {
+            $general_runoff_election_date = new \DateTime($general_runoff_election_date_value);
+        } catch (Exception $ex) {
+            throw new \Exception("Unable to parse date for field general_runoff_election_date: " . $general_runoff_election_date_value);
+        }
+
         $election_year = "";
 
         if($general_election_date != null && $general_election_date != "") {
@@ -209,6 +216,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
     }
 
     private function derive_district_identifier($district_name) {
+        // TODO: refactor district identifier into more extensible code
         $match_count = preg_match_all("/District ([\d\w]+)|Circuit Place ([\d]+)/", $district_name, $matches, PREG_SET_ORDER);
         
         if($match_count == 0 || $match_count == false) {
@@ -241,6 +249,16 @@ class FieldMapper {
         }
         
         return $this->field_set[$this->column_mapping[$field_name]];
+    }
+
+    public function get_fields() {
+        $translated_fields = array();
+
+        foreach($this->column_mapping as $field_name => $translated_field_index) {
+            $translated_fields[$field_name] = $this->field_set[$translated_field_index];
+        }
+
+        return $translated_fields;
     }
 
     public function has_value($field_name) {

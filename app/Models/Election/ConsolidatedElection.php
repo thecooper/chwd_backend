@@ -6,17 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConsolidatedElection extends Model
 {
-    // protected $table = "consolidated_elections";
+    public function load($inputs)
+    {
+        if (!is_array($inputs)) {
+            throw new \InvalidArgumentException("input \$inputs is expected to be an array");
+        }
 
-    public static $fields = [
-        "id" => ["primary"],
-        "name" => ["primary"],
-        "state_abbreviation" => ["max:2"],
-        "county" => ["nullable"],
-        "district" => ["nullable"],
-        "primary_date" => ["nullable"],
-        "general_date" => ["nullable"],
-        "is_special" => ["nullable"],
-        "is_runoff" => ["nullable"],
-    ];
+        $this->name = $inputs['name'];
+        $this->state_abbreviation = $inputs['state_abbreviation'];
+        $this->election_date = $inputs['election_date'];
+        $this->is_special = $inputs['is_special'];
+        $this->is_runoff = $inputs['is_runoff'];
+        $this->data_source_id = $inputs['data_source_id'];
+        // $this->election_type = $inputs['election_type']; this can be derived from is_special and is_runoff
+    }
 }
