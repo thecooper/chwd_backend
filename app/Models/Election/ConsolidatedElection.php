@@ -17,7 +17,7 @@ class ConsolidatedElection extends Model
         $this->election_date = $inputs['election_date'];
         $this->is_special = $inputs['is_special'];
         $this->is_runoff = $inputs['is_runoff'];
-        $this->data_source_id = $inputs['data_source_id'];
+        $this->election_type = $inputs['election_type'];
         // $this->election_type = $inputs['election_type']; this can be derived from is_special and is_runoff
     }
 }

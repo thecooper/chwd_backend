@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\Election\ElectionConsolidator;
+use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\Models\EloquentModelTransferManager;
+use App\Models\Election\ElectionConsolidator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,9 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
 
     public $bindings = [
+        Ballotpedia_CSV_File_Source::class => Ballotpedia_CSV_File_Source::class,
         EloquentModelTransferManager::class => EloquentModelTransferManager::class,
         ElectionConsolidator::class => ElectionConsolidator::class,
-
     ];
 
     public function boot()

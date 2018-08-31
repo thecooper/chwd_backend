@@ -42,6 +42,7 @@ class Election extends Model
         $this->election_date = $inputs['election_date'];
         $this->is_special = $inputs['is_special'];
         $this->is_runoff = $inputs['is_runoff'];
+        $this->election_type = $inputs['election_type'];
         $this->data_source_id = $inputs['data_source_id'];
         // $this->election_type = $inputs['election_type']; this can be derived from is_special and is_runoff
     }
@@ -59,6 +60,7 @@ class Election extends Model
 
             $new_election = new Election();
             $new_election->load($inputs);
+            $new_election->consolidated_election_id = $consolidated_election->id;
             $new_election->save();
 
             return $new_election;
