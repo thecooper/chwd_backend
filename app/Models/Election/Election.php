@@ -3,12 +3,13 @@
 namespace App\Models\Election;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\EloquentModelTransferManager;
 
 class Election extends Model
 {
     public $incrementing = false;
     protected $primaryKey = "name";
-
+    
     public function Candidates()
     {
         return $this->hasMany('App\Candidate');
@@ -32,28 +33,16 @@ class Election extends Model
 
     public function load($inputs)
     {
-        if (!is_array($inputs)) {
-            throw new \InvalidArgumentException("input \$inputs is expected to be an array");
-        }
-
+        ElectionLoader::load($this, $inputs);
         $this->consolidated_election_id = $inputs['consolidated_election_id'];
-        $this->name = $inputs['name'];
-        $this->state_abbreviation = $inputs['state_abbreviation'];
-        $this->election_date = $inputs['election_date'];
-        $this->is_special = $inputs['is_special'];
-        $this->is_runoff = $inputs['is_runoff'];
-        $this->election_type = $inputs['election_type'];
         $this->data_source_id = $inputs['data_source_id'];
-        // $this->election_type = $inputs['election_type']; this can be derived from is_special and is_runoff
     }
 
     public static function createOrUpdate($inputs)
     {
         $consolidated_election = ConsolidatedElection::where('name', $inputs['name'])->first();
-        // $new_consolidated_election = false;
 
         if($consolidated_election == null) {
-            $new_consolidated_election = true;
             $consolidated_election = new ConsolidatedElection();
             $consolidated_election->load($inputs);
             $consolidated_election->save();
@@ -76,6 +65,10 @@ class Election extends Model
             $election->load($inputs);
     
             $election->save();
+
+            $model_transfer_manager = new EloquentModelTransferManager();
+            $consolidator = new ElectionConsolidator($model_transfer_manager);
+            $consolidator->consolidate($election->id);
             
             return $election;
         }

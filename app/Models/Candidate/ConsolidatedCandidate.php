@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models\Election;
+namespace App\Models\Candidate;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ConsolidatedElection extends Model
+class ConsolidatedCandidate extends Model
 {
     public function load($inputs)
     {
-        ElectionLoader::load($this, $inputs);
+        CandidateLoader::load($this, $inputs);
+        
         if(array_key_exists('id', $inputs)) {
             $this->id = $inputs['id'];
         }

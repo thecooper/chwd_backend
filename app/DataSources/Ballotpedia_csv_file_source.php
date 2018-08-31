@@ -2,7 +2,7 @@
 
 namespace App\DataSources;
 
-use App\Candidate;
+use App\Models\Candidate\Candidate;
 use App\Models\Election\ElectionConsolidator;
 use App\Models\Election\ConsolidatedElection;
 use App\Models\Election\Election;
@@ -18,7 +18,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         'last_name' => 3,
         'url' => 4,
         'candidates_id' => 5,
-        'party' => 6,
+        'party_affiliation' => 6,
         'race_id' => 7,
         'election_date_id' => 8,
         'election_dates_district_id' => 9,
@@ -79,6 +79,8 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                         $header_read = true;
                         continue;
                     }
+
+                    if($this->line_count >= 10) { break; }
                     
                     // $fields = explode(',', $line);
 
@@ -87,14 +89,17 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     $election_date_id = $this->field_mapper->get_value('election_date_id');
                     
                     if($election_date_id == '' || $election_date_id == null) {
-                        print_r("Skipping election/candidate on line ".$this->line_count." because no valid election_date_id was found.");
                         continue;
                     }
 
+                    $line_fields = $this->field_mapper->get_fields();
+                    
                     if(false == array_search($election_date_id, $processed_election_ids)) {
-                        $new_election_id = $this->save_election($this->field_mapper->get_fields());
+                        $new_election_id = $this->save_election($line_fields);
                         $processed_election_ids[$election_date_id] = $new_election_id;
                     }
+                    
+                    $translated_election_id = null;
                     
                     try {
                         $translated_eleciton_id = $processed_election_ids[$election_date_id];
@@ -102,11 +107,13 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                         throw new Exception("There was a problem setting the translated_election_id using value " . $election_date_id . " on line " . $this->line_count);
                     }
 
-                    $this->persist_candidate($translated_eleciton_id);
+                    $this->save_candidate($line_fields, $translated_eleciton_id);
                 }
             }
         }
 
+        // TODO: do file cleanup here. Create "processed" folder if it doesn't exist, then move file there
+        
         return $this->line_count;
     }
 
@@ -116,7 +123,6 @@ class Ballotpedia_CSV_File_Source implements IDataSource
     }
     
     private function save_election($fields) {
-        // var_dump($fields);
         $election_fields = array();
 
         $election_fields['name'] = $this->election_name_generator($fields);
@@ -125,6 +131,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $election_fields['election_date'] = '';
         $election_fields['is_runoff'] = false;
 
+        // TODO : store both election and runoff dates separately, both can be provided
         if(array_key_exists('general_election_date', $fields)) {
             $election_fields['election_date'] = $fields['general_election_date'];
         } else if(array_key_exists('general_runoff_election_date', $fields)) {
@@ -134,11 +141,10 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         
         $election_fields['is_special'] = false;
         $election_fields['data_source_id'] = $this->data_source_id;
-        $election_fields['election_type'] = ($election_fields['is_runoff'] ? 'runoff' : 'general');
 
         $updated_or_created_election = Election::createOrUpdate($election_fields);
 
-        return $updated_or_created_election->id;
+        return $updated_or_created_election->consolidated_election_id;
     }
 
     private function election_name_generator($fields) {
@@ -183,57 +189,28 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         return implode(' ', $election_name_segments);
     }
 
-    private function persist_candidate($linking_election_id) {
-        $candidate_name = $this->field_mapper->get_value('name');
-        $candidate_office_level = $this->field_mapper->get_value('office_level');
-        $candidate_district = $this->field_mapper->get_value('district_name');
-        $candidate_district_type = $this->field_mapper->get_value('district_type');
-        
-        $state = $this->field_mapper->get_value('state');
+    private function save_candidate($fields, $election_id) {
+        $candidate_fields = $fields;
 
-        $candidate = Candidate::where('name', $candidate_name)
-            ->where('office_level', $candidate_office_level)
-            ->where('district', $candidate_district)
-            ->where('district_type', $candidate_district_type)
-            ->first();
+        $candidate_fields['name'] = $fields['name'];
+        $candidate_fields['election_id'] = $election_id;
+        $candidate_fields['party_affiliation'] = $fields['party_affiliation'];
+        $candidate_fields['website_url'] = $fields['website_url'];
+        $candidate_fields['donate_url'] = null;
+        $candidate_fields['facebook_profile'] = $fields['facebook_profile'];
+        $candidate_fields['twitter_handle'] = $fields['twitter_handle'];
+        $candidate_fields['election_status'] = $fields['general_election_status'];
+        $candidate_fields['election_office'] = $fields['office'];
+        $candidate_fields['is_incumbent'] = (strtolower($fields['is_incumbent']) == 'yes');
+        $candidate_fields['data_source_id'] = $this->data_source_id;
+        $candidate_fields['district_type'] = $fields['district_type'];
+        $candidate_fields['district'] = $fields['district_name'];
+        $candidate_fields['district_number'] = $this->derive_district_identifier($fields['district_name']);
+        $candidate_fields['office_level'] = $fields['office_level'];
 
-        $district_identifier = $this->derive_district_identifier($candidate_district);
-            
-        if($candidate == null) { $candidate = new Candidate(); }
-        
-        $candidate->name = $this->field_mapper->get_value('name');
-        $candidate->party_affiliation = $this->field_mapper->get_value('party');
-        $candidate->website_url = $this->field_mapper->get_value('website_url');
-        $candidate->election_id = $linking_election_id;
-        $candidate->donate_url = '';
-        $candidate->facebook_profile = $this->field_mapper->get_value('facebook_profile');
-        $candidate->twitter_handle = $this->field_mapper->get_value('twitter_handle');
-        $candidate->gender = '?';
-        $candidate->election_office = $this->field_mapper->get_value('office');
-        $candidate->election_status = $this->field_mapper->get_value('general_election_status');
-        $candidate->birthdate = date('Y-m-d');
-        $candidate->data_source_id = $this->data_source_id;
-        
-        $is_incumbent = false;
-        if($this->field_mapper->has_value('is_incumbent')) {
-            $is_incumbent = strtolower($this->field_mapper->get_value('is_incumbent')) == 'yes' ? true : false;
-        }
+        $updated_or_created_candidate = Candidate::createOrUpdate($candidate_fields);
 
-        $candidate->is_incumbent = (strtolower($is_incumbent) == 'yes' ? true : false);
-        $candidate->name = $candidate_name;
-        $candidate->office_level = $candidate_office_level;
-        $candidate->district = $candidate_district;
-        $candidate->district_number = $district_identifier;
-        $candidate->district_type = $candidate_district_type;
-
-        try {
-            if (!$candidate->save()) {
-                // Log the error here
-            }
-        } catch (Exception $ex) {
-            // Log error here and fail gracefully
-            throw $ex;
-        }
+        return $updated_or_created_candidate->consolidated_candidate_id;
     }
 
     private function derive_district_identifier($district_name) {
