@@ -3,8 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\DataSources;
+use App\DataSources\FieldMapper;
 use App\DataSources\FileDataSourceConfig as FileDataSourceConfig;
+use App\DataSources\Ballotpedia_CSV_File_Source;
 
 class import extends Command
 {
@@ -32,8 +33,8 @@ class import extends Command
     public function __construct()
     {
         parent::__construct();
-        $field_mapper = new \App\DataSources\FieldMapper(\App\DataSources\Ballotpedia_CSV_File_Source::$column_mapping);
-        $this->ballotpedia_importer = new \App\DataSources\Ballotpedia_CSV_File_Source($field_mapper);
+        $field_mapper = new FieldMapper(Ballotpedia_CSV_File_Source::$column_mapping);
+        $this->ballotpedia_importer = new Ballotpedia_CSV_File_Source($field_mapper);
     }
 
     /**
