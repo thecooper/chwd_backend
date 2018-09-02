@@ -1,0 +1,166 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class InitialTableMigration extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        if(!Schema::hasTable('data_sources')) {
+            Schema::create('data_sources', function (Blueprint $table) {
+                $table->increments('id');
+                $table->timestamps();
+                $table->string('name');
+
+                $table->index('name');
+            });
+        }
+        
+        if(!Schema::hasTable('data_source_priorities')) {
+            Schema::create('data_source_priorities', function (Blueprint $table) {
+                $table->string('destination_table');
+                $table->unsignedInteger('data_source_id');
+                $table->unsignedInteger('priority');
+                $table->timestamps();
+
+                $table->index(['destination_table']);
+
+                $table->foreign('data_source_id')->references('id')->on('data_sources');
+            });
+        }
+
+        if(!Schema::hasTable('consolidated_elections')) {
+            Schema::create('consolidated_elections', function (Blueprint $table) {
+                $table->increments('id');
+                
+                $table->string('name');
+                $table->string('state_abbreviation', 2);
+                $table->date('primary_election_date')->nullable();
+                $table->date('general_election_date')->nullable();
+                $table->date('runoff_election_date')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if(!Schema::hasTable('elections')) {
+            Schema::create('elections', function (Blueprint $table) {
+                $table->integer('consolidated_election_id')->unsigned();
+                $table->string('name');
+                $table->string('state_abbreviation', 2);
+                $table->date('primary_election_date')->nullable();
+                $table->date('general_election_date')->nullable();
+                $table->date('runoff_election_date')->nullable();
+                $table->integer('data_source_id')->unsigned();
+                $table->timestamps();
+
+                $table->foreign('data_source_id')->references('id')->on('data_sources');
+            });
+        }
+        
+        if(!Schema::hasTable('consolidated_candidates')) {
+            Schema::create('consolidated_candidates', function (Blueprint $table) {
+                $table->increments('id');
+                
+                $table->string('name', 100);
+                $table->integer('election_id')->unsigned();
+                $table->string('party_affiliation');
+                $table->string('election_status');
+                $table->string('office');
+                $table->string('office_level');
+                $table->boolean('is_incumbent');
+                $table->string('district_type');
+                $table->string('district');
+                $table->string('district_identifier', 4)->nullable();
+                $table->string('website_url')->nullable();
+                $table->string('donate_url')->nullable();
+                $table->string('facebook_profile')->nullable();
+                $table->string('twitter_handle')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if(!Schema::hasTable('candidates')) {
+            Schema::create('candidates', function (Blueprint $table) {
+                $table->integer('consolidated_candidate_id')->unsigned();
+                
+                $table->string('name', 100);
+                $table->integer('election_id')->unsigned()->nullable();
+                $table->string('party_affiliation')->nullable();
+                $table->string('election_status')->nullable();
+                $table->string('office')->nullable();
+                $table->string('office_level')->nullable();
+                $table->boolean('is_incumbent')->nullable();
+                $table->string('district_type')->nullable();
+                $table->string('district')->nullable();
+                $table->string('district_identifier', 4)->nullable();
+                $table->string('website_url')->nullable();
+                $table->string('donate_url')->nullable();
+                $table->string('facebook_profile')->nullable();
+                $table->string('twitter_handle')->nullable();
+                $table->integer('data_source_id')->unsigned();
+                $table->timestamps();
+
+                
+                $table->foreign('election_id')->references('id')->on('consolidated_elections');
+                $table->foreign('data_source_id')->references('id')->on('data_sources');
+            });
+        }
+
+        if(!Schema::hasTable('news')) {
+            Schema::create('news', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('url');
+                $table->string('thumbnail_url');
+                $table->string('title');
+                $table->text('description');
+                $table->unsignedInteger('candidate_id')->nullable();
+                $table->dateTime('publish_date');
+                $table->timestamps();
+
+                $table->foreign('candidate_id')->references('id')->on('consolidated_candidates');
+            });
+        }
+
+        if(!Schema::hasTable('user_ballots')) {
+            Schema::create('user_ballots', function(Blueprint $table) {
+                $table->increments('id');
+                $table->integer('user_id')->unsigned();
+                $table->string("address_line_1")->nullable();
+                $table->string("address_line_2")->nullable();
+                $table->string("city");
+                $table->string("zip");
+                $table->string("state_abbreviation", 2);
+                $table->integer('congressional_district')->nullable();
+                $table->integer('state_legislative_district')->nullable();
+                $table->integer('state_house_district')->nullable();
+                $table->timestamps();
+
+                $table->foreign('user_id')->references('id')->on('users');
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('user_ballots');
+        Schema::dropIfExists('news');
+        Schema::dropIfExists('candidates');
+        Schema::dropIfExists('consolidated_candidates');
+        Schema::dropIfExists('elections');
+        Schema::dropIfExists('consolidated_elections');
+        Schema::dropIfExists('data_source_priorities');
+        Schema::dropIfExists('data_sources');
+    }
+}

@@ -4,7 +4,7 @@ namespace App\DataSources;
 
 interface IDataSource
 {
-    function Process();
+    function Process(DataSourceConfig $config);
 
     function CanProcess();
 }

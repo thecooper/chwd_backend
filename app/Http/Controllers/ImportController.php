@@ -20,6 +20,6 @@ class ImportController extends Controller
             $file_count = $this->source->Process();
         }
     
-        return "Processed {$file_count} files";
+        return "Processed {$file_count} records";
     }
 }

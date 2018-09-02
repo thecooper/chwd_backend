@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConsolidatedCandidate extends Model
 {
+    protected $primaryKey = 'id';
+
     public function load($inputs)
     {
         CandidateLoader::load($this, $inputs);

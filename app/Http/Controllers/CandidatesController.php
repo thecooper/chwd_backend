@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Consolidators\CandidateConsolidator;
 use Illuminate\Http\Request;
+use App\Models\Candidate\ConsolidatedCandidate;
 
 class CandidatesController extends Controller
 {
@@ -15,22 +15,17 @@ class CandidatesController extends Controller
     public function index(Request $request)
     {
         if (isset($request)) {
-            // $user = Auth::user();
-
-            $consolidator = new CandidateConsolidator();
-
-            $consolidator->Consolidate('Al Carlson');
-
-            //TODO: Use Consolidator to get flattened version of data
-
-            return response()->html("Made it here!", 200);
+            $candidates = ConsolidatedCandidate::take(100)->get();
+            return response()->json($candidates, 200);
         } else {
             return "Could not find request object";
         }
     }
 
-    public function show($id)
+    public function show($election_id)
     {
-        //
+        if(isset($request)) {
+
+        }
     }
 }

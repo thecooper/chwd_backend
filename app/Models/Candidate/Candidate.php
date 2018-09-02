@@ -4,10 +4,20 @@ namespace App\Models\Candidate;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\EloquentModelTransferManager;
+use Illuminate\Database\Eloquent\Builder;
 
 class Candidate extends Model
 {
-    public $timestamps = false;
+    public $incrementing = false;
+    // protected $primaryKey = "name";
+
+    protected function setKeysForSaveQuery(Builder $query)
+    {
+        $query
+            ->where('consolidated_candidate_id', '=', $this->getAttribute('consolidated_candidate_id'))
+            ->where('data_source_id', '=', $this->getAttribute('data_source_id'));
+        return $query;
+    }
 
     //
     public function IsValid()
@@ -42,13 +52,11 @@ class Candidate extends Model
             $new_candidate = new Candidate();
             $new_candidate->load($inputs);
             $new_candidate->consolidated_candidate_id = $consolidated_candidate->id;
-            var_dump($new_candidate);
             $new_candidate->save();
 
             return $new_candidate;
         } else {
-            $id = $consolidated_candidate->id;
-            $candidate = Candidate::findByCompositeKey($id, $inputs["data_source_id"])->first();
+            $candidate = Candidate::findByCompositeKey($consolidated_candidate->id, $inputs["data_source_id"])->first();
     
             if ($candidate == null) {
                 $candidate = new Candidate();
@@ -57,8 +65,12 @@ class Candidate extends Model
             $inputs['consolidated_candidate_id'] = $consolidated_candidate->id;
             
             $candidate->load($inputs);
-    
-            $candidate->save();
+            
+            try {
+                $candidate->save();
+            } catch (Exception $ex) {
+                throw $ex;
+            }
 
             $model_transfer_manager = new EloquentModelTransferManager();
             $consolidator = new CandidateConsolidator($model_transfer_manager);
@@ -71,6 +83,8 @@ class Candidate extends Model
     public function load($inputs)
     {
         CandidateLoader::load($this, $inputs);
+        
+        $this->data_source_id = $inputs['data_source_id'];
         
         if(array_key_exists('consolidated_candidate_id', $inputs)) {
             $this->consolidated_candidate_id = $inputs['consolidated_candidate_id'];

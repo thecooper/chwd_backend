@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateUsersAddAddlFields extends Migration
+class ModifyUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,16 +14,13 @@ class UpdateUsersAddAddlFields extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('congressional_district');
-            $table->integer('state_legislative_district');
-            $table->integer('state_house_district');
-            $table->string('polling_location_address_1');
-            $table->string('polling_location_address_2');
-            $table->string('polling_location_city');
-            $table->string('polling_location_state');
-            $table->string('polling_location_zip');
-            $table->time('polling_location_time_open');
-            $table->time('polling_location_time_closed');
+            $table->string('polling_location_address_1')->nullable();
+            $table->string('polling_location_address_2')->nullable();
+            $table->string('polling_location_city')->nullable();
+            $table->string('polling_location_state')->nullable();
+            $table->string('polling_location_zip')->nullable();
+            $table->time('polling_location_time_open')->nullable();
+            $table->time('polling_location_time_closed')->nullable();
         });
     }
 
@@ -36,9 +33,6 @@ class UpdateUsersAddAddlFields extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn([
-                'congressional_district',
-                'state_legislative_district',
-                'state_house_district',
                 'polling_location_address_1',
                 'polling_location_address_2',
                 'polling_location_city',

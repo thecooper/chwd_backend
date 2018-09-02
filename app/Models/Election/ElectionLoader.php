@@ -10,8 +10,8 @@ class ElectionLoader {
 
         $model->name = $inputs['name'];
         $model->state_abbreviation = $inputs['state_abbreviation'];
-        $model->election_date = $inputs['election_date'];
-        $model->is_special = $inputs['is_special'];
-        $model->is_runoff = $inputs['is_runoff'];
+        $model->primary_election_date = $inputs['primary_election_date'];
+        $model->general_election_date = $inputs['general_election_date'];
+        $model->runoff_election_date = $inputs['runoff_election_date'];
     }
 }
