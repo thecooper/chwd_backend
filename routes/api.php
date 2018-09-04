@@ -12,7 +12,10 @@
  */
 
 use App\UserBallot;
+use Illuminate\Http\Request;
 use App\DataSources\Ballotpedia_CSV_File_Source;
+use App\Models\Candidate\ConsolidatedCandidate;
+use App\DataSources\NewsAPIDataSource;
  
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
@@ -42,11 +45,24 @@ Route::middleware('auth.basic')->group(function () {
     //     return response()->json($ballot_list, 200);
     // });
 
-    Route::get('candidates', 'CandidatesController@index');
+    Route::resource('candidates', 'CandidatesController')->only('index', 'show');
+    
+    Route::get('candidates/{id}/media/news', function(Request $request, NewsAPIDataSource $news_data_source, $id) {
+        $candidate = ConsolidatedCandidate::find($id);
+
+        if($candidate == null) { return response()->json(null, 404); }
+
+        $query = "\"{$candidate->name}\" {$candidate->election->state_abbreviation}";
+
+        $articles = $news_data_source->get_articles($query);
+
+        return response()->json($articles, 200);
+    });
 
     Route::resource('elections', 'ElectionsController')->only('index', 'show');
     Route::get('elections/{id}/races', 'ElectionsController@races');
     Route::get('elections/{id}/candidates', 'ElectionsController@election_candidates');
+
 });
 
 Route::post('users', 'UsersController@store');

@@ -16,4 +16,8 @@ class ConsolidatedCandidate extends Model
             $this->id = $inputs['id'];
         }
     }
+
+    public function election() {
+        return $this->belongsTo('App\Models\Election\ConsolidatedElection');
+    }
 }

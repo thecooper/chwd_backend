@@ -25,10 +25,6 @@ class Candidate extends Model
         return true;
     }
 
-    public function Election() {
-        return $this->belongsTo('App\Election');
-    }
-
     public function data_source()
     {
         return $this->hasOne('App\DataSource');

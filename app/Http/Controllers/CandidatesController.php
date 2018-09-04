@@ -22,10 +22,14 @@ class CandidatesController extends Controller
         }
     }
 
-    public function show($election_id)
+    public function show($id)
     {
-        if(isset($request)) {
+        $candidate = ConsolidatedCandidate::find($id);
 
+        if($candidate == null) {
+            return response()->json(null, 404);
+        } else {
+            return response()->json($candidate, 200);
         }
     }
 }
