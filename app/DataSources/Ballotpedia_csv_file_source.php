@@ -75,7 +75,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                         continue;
                     }
 
-                    if($result->processed_line_count >= 1000) { break; }
+                    // if($result->processed_line_count >= 1000) { break; }
                     
                     $this->field_mapper->load_fields($fields);
 
