@@ -17,52 +17,78 @@ Authorization: Basic c29tZW9uZUBnb29nbGUuY29tOnRoaXNpc215cGFzc3dvcmQ=
 the following link can be used to base64 encode strings: https://www.base64encode.org/
 
 # Users/
-
 Available Methods: GET, POST
 
 ## GET
-Gets the results of users 
-<br>
-(WIP)
+Gets the results of users (WIP)
 
-## POST (Not Authenticated)
+# elections/
+## Method: GET
+### Parameters
+**state** - will filter election results by state (2 letter representation)
 
-# Elections/
+### Response
 
-Available Methods: GET, POST
+```
+{
+    id: number,
+    name: string,
+    state_abbreviation: string(2),
+    general_election_date: date,
+    runoff_election_date: date
+}
+```
 
-## GET
+# elections/{id}
+## Method: GET
 
-### Query Parameters
+Select a single election record by id. If record is not found, endpoint should return a 404 error.
 
-| Parameters | Comments |
-| ---------- | -------- |
-| state      | will filter election results by state (2 letter representation) |
+## Response
+See /elections endpoint
 
-### Returned Fields
+# candidates/
+## Method: GET
+### Parameters
+### Response
+```
+{
+    "id": number,
+    "name": string,
+    "election_id": number,
+    "party_affiliation": string,
+    "election_status": "On the Ballot",
+    "office": stirng,
+    "office_level": "Local"|"State"|"Federal",
+    "is_incumbent": 0|1,
+    "district_type": string*,
+    "district": string,
+    "district_identifier": string(4),
+    "website_url": string|null,
+    "donate_url": string|null,
+    "facebook_profile": string|null,
+    "twitter_handle": string|null
+}
+```
 
-| Field Name | Data Type |
-| ---------- | --------- |
-| id         | unsigned-int |
-| created_at | datetime |
-| updated_at | datetime |
-| name       | string |
-| state_abbreviation | string(2) |
-| election_date | date |
-| is_special | boolean |
-| is_runoff | boolean |
-| election_type | string |
+# candidates/{id}
+## Method: GET
+### Parameters
+### Response
+See candidates/ endpoint
 
-
-## POST (For Testing Only, will be removed after going live)
-
-Format: JSON (XML? - untested)
-
-| Field Name | Data Type | Required |
-| ---------- | -------- | -------- |
-| name | string | yes |
-| state_abbreviation | string(2) | yes |
-| election_date | date | yes |
-| is_special | bool | yes |
-| is_runoff | bool | yes |
-| election_type | string | no |
+# candidates/{id}/media/news
+Gets news articles related to the candidate selected via id
+## Method: GET
+### Parameters
+**id**: candidate id (Required)
+### Response
+```
+{
+    url: string,
+    thumbnail_url: string,
+    title: string,
+    description: string,
+    publish_date: datetime
+}
+```
