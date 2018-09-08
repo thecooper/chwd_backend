@@ -136,13 +136,38 @@ class InitialTableMigration extends Migration
                 $table->string("address_line_2")->nullable();
                 $table->string("city");
                 $table->string("zip");
+                $table->string("county");
                 $table->string("state_abbreviation", 2);
                 $table->integer('congressional_district')->nullable();
-                $table->integer('state_legislative_district')->nullable();
-                $table->integer('state_house_district')->nullable();
+                $table->string('state_legislative_district')->nullable();
+                $table->string('state_house_district')->nullable();
                 $table->timestamps();
 
                 $table->foreign('user_id')->references('id')->on('users');
+            });
+        }
+
+        if(!Schema::hasTable('user_news')) {
+            Schema::create('user_news', function(Blueprint $table) {
+                $table->integer('user_id')->unsigned();
+                $table->integer('news_id')->unsigned();
+
+                $table->primary(['user_id', 'news_id']);
+                
+                $table->foreign('user_id')->references('id')->on('users');
+                $table->foreign('news_id')->references('id')->on('news');
+            });
+        }
+
+        if(!Schema::hasTable('user_ballot_candidates')) {
+            Schema::create('user_ballot_candidates', function(Blueprint $table) {
+                $table->integer('user_ballot_id')->unsigned();
+                $table->integer('candidate_id')->unsigned();
+
+                $table->primary(['user_ballot_id', 'candidate_id']);
+                
+                $table->foreign('user_ballot_id')->references('id')->on('user_ballots')->onDelete('cascade');
+                $table->foreign('candidate_id')->references('id')->on('consolidated_candidates')->onDelete('cascade');
             });
         }
     }
@@ -154,6 +179,8 @@ class InitialTableMigration extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('user_ballot_candidates');
+        Schema::dropIfExists('user_news');
         Schema::dropIfExists('user_ballots');
         Schema::dropIfExists('news');
         Schema::dropIfExists('candidates');

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\User;
-use App\GeocodioAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,16 +17,6 @@ class UsersController extends Controller
     {
         // Do some permissions checking!!
         return User::all();
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(Request $request)
-    {
-        throw new Exception("Not Implemented");
     }
 
     /**
@@ -48,10 +37,7 @@ class UsersController extends Controller
                 'email' => $input_params['email'],
                 'password' => Hash::make($input_params['password']),
             ]);
-
             
-            // event(new Registered($newUser));
-
             return response()->json($newUser, 201);
         } catch (Exception $ex) {
             return response()->json([
@@ -69,17 +55,6 @@ class UsersController extends Controller
     public function show(Request $request)
     {
         return $request->user();
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
     }
 
     /**

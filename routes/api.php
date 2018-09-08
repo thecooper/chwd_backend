@@ -15,6 +15,7 @@ use App\UserBallot;
 use Illuminate\Http\Request;
 use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\Models\Candidate\ConsolidatedCandidate;
+use App\News;
 use App\DataSources\NewsAPIDataSource;
  
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
@@ -22,39 +23,49 @@ use App\DataSources\NewsAPIDataSource;
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index');
 
-    Route::get('users/me', 'UsersController@index');
-    Route::get('users/me', 'UsersController@show');
+    Route::prefix('users/me')->group(function() {
+        Route::get('', 'UsersController@show');
 
-    // Route::get('users/me/ballots', function() {
-    //     $user = Auth::user();
-    //     $ballot_list = array();
+        Route::resource('news', 'UserNewsController')->only('index', 'update', 'destroy');
+        Route::resource('ballots', 'UserBallotsController');
+        Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')
+            ->except('store', 'show')
+            ->middleware('ballot-valid-user:ballot_id');
+        Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')
+            ->only('index')
+            ->middleware('ballot-valid-user:ballot');
+    });
 
-    //     foreach($user->ballots as $ballot) {
-    //         $ballot_array = array(
-    //             "id" => $ballot["id"],
-    //             "address_line_1" => $ballot["address_line_1"],
-    //             "address_line_2" => $ballot["address_line_2"],
-    //             "city" => $ballot["city"],
-    //             "state_abbreviation" => $ballot["state_abbreviation"],
-    //             "zip" => $ballot["zip"],
-    //         );
-
-    //         array_push($ballot_list, $ballot_array);
-    //     }
-
-    //     return response()->json($ballot_list, 200);
-    // });
 
     Route::resource('candidates', 'CandidatesController')->only('index', 'show');
     
-    Route::get('candidates/{id}/media/news', function(Request $request, NewsAPIDataSource $news_data_source, $id) {
+    Route::get('candidates/{id}/news', function(Request $request, NewsAPIDataSource $news_data_source, $id) {
         $candidate = ConsolidatedCandidate::find($id);
 
-        if($candidate == null) { return response()->json(null, 404); }
+        if($candidate == null) { return response()->json('candidate not found', 404); }
 
         $query = "\"{$candidate->name}\" {$candidate->election->state_abbreviation}";
 
         $articles = $news_data_source->get_articles($query);
+
+        foreach($articles as $article) {
+            $existing_article = News::where('url', $article->url)->first();
+
+            // var_dump($existing_article->url);
+
+            if($existing_article == null) {
+                // print_r("Saving an article!!!");
+                $existing_article = new News();
+            }
+
+            $existing_article->url = $article->url;
+            $existing_article->thumbnail_url = $article->thumbnail_url ?? '';
+            $existing_article->title = $article->title;
+            $existing_article->description = $article->description ?? '';
+            $existing_article->candidate_id = $id;
+            $existing_article->publish_date = (new DateTime($article->publish_date))->format('Y-m-d H:i:s');
+            $existing_article->save();
+        }
 
         return response()->json($articles, 200);
     });
