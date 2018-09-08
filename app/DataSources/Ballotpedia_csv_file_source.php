@@ -192,7 +192,6 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $match_count = preg_match_all($regex, $district_name, $matches, PREG_SET_ORDER);
         
         if($match_count == 0 || $match_count == false) {
-            print_r("Could not find identifier for value $district_name\n");
             return null;
         }
 
