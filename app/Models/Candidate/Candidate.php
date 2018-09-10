@@ -42,11 +42,11 @@ class Candidate extends Model
 
         if($consolidated_candidate == null) {
             $consolidated_candidate = new ConsolidatedCandidate();
-            $consolidated_candidate->load($inputs);
+            $consolidated_candidate->load_fields($inputs);
             $consolidated_candidate->save();
 
             $new_candidate = new Candidate();
-            $new_candidate->load($inputs);
+            $new_candidate->load_fields($inputs);
             $new_candidate->consolidated_candidate_id = $consolidated_candidate->id;
             $new_candidate->save();
 
@@ -60,7 +60,7 @@ class Candidate extends Model
     
             $inputs['consolidated_candidate_id'] = $consolidated_candidate->id;
             
-            $candidate->load($inputs);
+            $candidate->load_fields($inputs);
             
             try {
                 $candidate->save();
@@ -76,7 +76,7 @@ class Candidate extends Model
         }
     }
 
-    public function load($inputs)
+    public function load_fields($inputs)
     {
         CandidateLoader::load($this, $inputs);
         

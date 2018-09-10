@@ -8,7 +8,7 @@ class ConsolidatedCandidate extends Model
 {
     protected $primaryKey = 'id';
 
-    public function load($inputs)
+    public function load_fields($inputs)
     {
         CandidateLoader::load($this, $inputs);
         

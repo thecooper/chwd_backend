@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConsolidatedElection extends Model
 {
-    // public function load($inputs)
-    // {
-    //     ElectionLoader::load($this, $inputs);
+    public function load_fields($inputs)
+    {
+        ElectionLoader::load($this, $inputs);
         
-    //     if(array_key_exists('id', $inputs)) {
-    //         $this->id = $inputs['id'];
-    //     }
-    // }
+        if(array_key_exists('id', $inputs)) {
+            $this->id = $inputs['id'];
+        }
+    }
     
     /**
      * @return Builder of candidates that belong to this election
