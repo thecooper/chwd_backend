@@ -19,3 +19,4 @@ Displays the information associated with the user account for the authenticated 
     polling_location_time_closed: datetime 
 }
 ```
+### 401 - Not Authenticated
