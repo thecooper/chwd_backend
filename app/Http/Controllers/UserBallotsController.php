@@ -119,16 +119,16 @@ class UserBallotsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(UserBallot $ballot)
     {
-        dd($id);
-        $user_ballot = UserBallot::find($id);
+        // dd($id);
+        // $user_ballot = UserBallot::find($id);
 
-        if($user_ballot == null) {
+        if($ballot == null) {
             return response()->json('user ballot not found', 404);
         }
 
-        $user_ballot->delete();
+        $ballot->delete();
 
         return response()->json('', 202);
     }

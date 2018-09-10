@@ -17,7 +17,8 @@ use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\Models\Candidate\ConsolidatedCandidate;
 use App\News;
 use App\DataSources\NewsAPIDataSource;
- 
+use App\Models\BallotManager;
+
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
 Route::middleware('auth.basic')->group(function () {
@@ -27,13 +28,24 @@ Route::middleware('auth.basic')->group(function () {
         Route::get('', 'UsersController@show');
 
         Route::resource('news', 'UserNewsController')->only('index', 'update', 'destroy');
-        Route::resource('ballots', 'UserBallotsController');
+        Route::resource('ballots', 'UserBallotsController')->except('update');
         Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')
             ->except('store', 'show')
             ->middleware('ballot-valid-user:ballot_id');
+
         Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')
             ->only('index')
             ->middleware('ballot-valid-user:ballot');
+
+        Route::get('ballots/{ballot}/candidates/news', function(Request $request, UserBallot $ballot) {
+            $ballot_manager = new BallotManager();
+
+            return response()->json($ballot_manager->get_news_from_ballot($ballot), 200);
+        })->middleware('ballot-valid-user:ballot');
+
+        Route::get('ballots/{ballot}/candidates/tweets', function(Request $request, UserBallot $ballot) {
+            return response()->json([], 200);
+        })->middleware('ballot-valid-user:ballot');
     });
 
 

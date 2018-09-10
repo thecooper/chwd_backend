@@ -20,4 +20,8 @@ class ConsolidatedCandidate extends Model
     public function election() {
         return $this->belongsTo('App\Models\Election\ConsolidatedElection');
     }
+
+    public function news() {
+        return $this->hasMany('App\News');
+    }
 }

@@ -42,7 +42,7 @@ class UsersController extends Controller
         } catch (Exception $ex) {
             return response()->json([
                 "error" => "could not create new user",
-            ], 400);
+            ], 500);
         }
     }
 

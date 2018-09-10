@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\BallotManager;
 use App\UserBallot;
 
 class UserBallotCandidatesController extends Controller
@@ -14,19 +14,18 @@ class UserBallotCandidatesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, $ballot_id)
+    public function index(Request $request, UserBallot $ballot_id)
     {
-        $ballot = UserBallot::find($ballot_id);
-
-        $user_ballot_candidate_ids = DB::table('user_ballot_candidates')
-            ->select('candidate_id')
-            ->where('user_ballot_id', $ballot_id)
-            ->get()
-            ->map(function($candidate_id_object) {
-                return $candidate_id_object->candidate_id;
+        $ballot_manager = new BallotManager();
+        $ballot = UserBallot::find($ballot_id)->first();
+        
+        $candidates = collect($ballot_manager->get_candidates_from_ballot($ballot))
+            ->groupBy('district_type')
+            ->map(function($value) {
+                return $value->groupBy('office');
             });
 
-        return response()->json($user_ballot_candidate_ids, 200);
+        return response()->json($candidates, 200);
     }
 
     // /**
