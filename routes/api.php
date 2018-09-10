@@ -11,13 +11,16 @@
 |
  */
 
-use App\UserBallot;
 use Illuminate\Http\Request;
-use App\DataSources\Ballotpedia_CSV_File_Source;
-use App\Models\Candidate\ConsolidatedCandidate;
+
 use App\News;
+use App\UserBallot;
 use App\DataSources\NewsAPIDataSource;
+use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\Models\BallotManager;
+use App\Models\Election\ConsolidatedElection;
+use App\Models\Candidate\ConsolidatedCandidate;
+use App\Jobs\ProcessElectionNews;
 
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
@@ -27,7 +30,9 @@ Route::middleware('auth.basic')->group(function () {
     Route::prefix('users/me')->group(function() {
         Route::get('', 'UsersController@show');
 
+        // TODO: move the saved news functionality to /ballots/{ballot_id}/news/saved
         Route::resource('news', 'UserNewsController')->only('index', 'update', 'destroy');
+        
         Route::resource('ballots', 'UserBallotsController')->except('update');
         Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')
             ->except('store', 'show')
@@ -48,46 +53,17 @@ Route::middleware('auth.basic')->group(function () {
         })->middleware('ballot-valid-user:ballot');
     });
 
-
-    Route::resource('candidates', 'CandidatesController')->only('index', 'show');
-    
-    Route::get('candidates/{id}/news', function(Request $request, NewsAPIDataSource $news_data_source, $id) {
-        $candidate = ConsolidatedCandidate::find($id);
-
-        if($candidate == null) { return response()->json('candidate not found', 404); }
-
-        $query = "\"{$candidate->name}\" {$candidate->election->state_abbreviation}";
-
-        $articles = $news_data_source->get_articles($query);
-
-        foreach($articles as $article) {
-            $existing_article = News::where('url', $article->url)->first();
-
-            // var_dump($existing_article->url);
-
-            if($existing_article == null) {
-                // print_r("Saving an article!!!");
-                $existing_article = new News();
-            }
-
-            $existing_article->url = $article->url;
-            $existing_article->thumbnail_url = $article->thumbnail_url ?? '';
-            $existing_article->title = $article->title;
-            $existing_article->description = $article->description ?? '';
-            $existing_article->candidate_id = $id;
-            $existing_article->publish_date = (new DateTime($article->publish_date))->format('Y-m-d H:i:s');
-            $existing_article->save();
-        }
-
-        return response()->json($articles, 200);
-    });
-
     Route::resource('elections', 'ElectionsController')->only('index', 'show');
     Route::get('elections/{id}/races', 'ElectionsController@races');
     Route::get('elections/{id}/candidates', 'ElectionsController@election_candidates');
 
 });
 
+Route::resource('candidates', 'CandidatesController')->only('index', 'show');
+
+// User Registration
 Route::post('users', 'UsersController@store');
 
-// Route::post('users', 'UsersController@create');
+Route::get('elections/{election}/news', function(Request $request, ConsolidatedElection $election) {
+    ProcessElectionNews::dispatch($election);
+});

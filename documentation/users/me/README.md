@@ -1,4 +1,6 @@
 # /users/me [GET]
+## Description
+Displays the information associated with the user account for the authenticated user
 ## Response
 ### 200 - OK
 ```

@@ -3,12 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
-use App\Models\BallotManager;
+
 use App\UserBallot;
+use App\Models\BallotManager;
+use App\Models\Candidate\ConsolidatedCandidate;
 
 class UserBallotCandidatesController extends Controller
 {
+    private $ballot_manager;
+    
+    public function __construct(BallotManager $ballot_manager) {
+        $this->ballot_manager = $ballot_manager;
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -16,10 +25,9 @@ class UserBallotCandidatesController extends Controller
      */
     public function index(Request $request, UserBallot $ballot_id)
     {
-        $ballot_manager = new BallotManager();
         $ballot = UserBallot::find($ballot_id)->first();
         
-        $candidates = collect($ballot_manager->get_candidates_from_ballot($ballot))
+        $candidates = collect($this->ballot_manager->get_candidates_from_ballot($ballot))
             ->groupBy('district_type')
             ->map(function($value) {
                 return $value->groupBy('office');
@@ -54,24 +62,22 @@ class UserBallotCandidatesController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  UserBallot $ballot
+     * @param  int $id - ID of the candidate to select
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $ballot_id, $id)
     {
-        $existing_ballot_candidate_link = $this->get_existing_user_ballot_candidate_link($ballot_id, $id)
-            ->first();
+        $ballot = UserBallot::find($ballot_id);
+        $candidate = ConsolidatedCandidate::find($id);
 
-        if($existing_ballot_candidate_link != null) {
-            return response()->json(null, 200);
+        if($candidate == null) {
+            return response()->json("Candidate not found", 404);
         }
-        
-        DB::table('user_ballot_candidates')->insert([
-            'user_ballot_id'=>$ballot_id,
-            'candidate_id'=>$id
-        ]);
 
-        return response()->json(null, 201);
+        $this->ballot_manager->select_candidate($ballot, $candidate);
+
+        return Response::make(null, 201); //response()->json(null, 201);
     }
 
     /**

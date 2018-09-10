@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
+
 use App\UserBallot;
 use App\Models\Candidate\ConsolidatedCandidate;
 use App\Models\Election\ConsolidatedElection;
@@ -33,8 +35,15 @@ class BallotManager {
     public function get_candidates_from_ballot(UserBallot $ballot) {
         $elections = $this->get_elections_by_state($ballot->state_abbreviation);
 
-        $candidates_collection = $this->_get_candidates_from_ballot($elections, $ballot);
+        $selected_candidate_ids = $ballot->candidates;
         
+        $candidates_collection = collect($this->_get_candidates_from_ballot($elections, $ballot));
+        
+        $candidates_collection = $candidates_collection->map(function($candidate) use ($selected_candidate_ids) {
+            $candidate["selected"] = $selected_candidate_ids->contains($candidate["id"]);
+            return $candidate;
+        });
+
         return $candidates_collection;
     }
 
@@ -52,13 +61,35 @@ class BallotManager {
     }
 
     /**
+     * Select Candidate on Ballot
+     */
+    public function select_candidate(UserBallot $ballot, ConsolidatedCandidate $candidate) {
+        $candidates = $this->get_candidates_from_ballot($ballot);
+
+        $race_candidates = $this->get_candidates_by_race($candidates, $candidate->office);
+
+        $race_candidate_ids = $race_candidates->pluck('id');
+
+        DB::table('user_ballot_candidates')
+            ->where('user_ballot_id', $ballot->id)
+            ->whereIn('candidate_id', $race_candidate_ids)
+            ->delete();
+
+        DB::table('user_ballot_candidates')
+            ->insert([
+                'user_ballot_id'=>$ballot->id,
+                'candidate_id'=>$candidate->id]
+            );
+    }
+    
+    /**
      * @param string $state_abbreviation
      * @return ConsolidatedElection[]
      */
     private function get_elections_by_state($state_abbreviation) {
         return ConsolidatedElection::where('state_abbreviation', $state_abbreviation)->get();
     }
-    
+
     /**
      * @return ConsolidatedCandidate[]
      */
@@ -155,5 +186,15 @@ class BallotManager {
                 return strpos(trim(str_replace("County", "", $value->district_name)), $district_id) !== false;
             })
             ->toArray();
+    }
+
+    /**
+     * @param Collection<ConsolidatedCandidate> $candidates_collection - Collection of candidates to filter by
+     * @param string $office - The office of the race that needs to be sorted by
+     * @return Collection<ConsolidatedCandidate>
+     */
+    private function get_candidates_by_race($candidates_collection, $office) {
+        return $candidates_collection
+            ->where('office', $office);
     }
 }

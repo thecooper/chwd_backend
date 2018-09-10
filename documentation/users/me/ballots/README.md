@@ -1,4 +1,6 @@
 # /users/me/ballots [GET]
+## Description
+Show all ballots that are bound to the authenticated user
 ## Responses
 ### 200 - OK
 ```
@@ -25,6 +27,8 @@
 ### 404 - Ballot not found*
 
 # /users/me/ballots/{id} [GET]
+## Description
+Show selected ballot based on *id*
 ## Responses
 ### 200 - OK
 ```
@@ -48,6 +52,8 @@
 ### 404 - Ballot Not Found*
 
 # /users/me/ballots/ [POST]
+## Description
+Create a new ballot lookup
 ## Request
 ```
 {
@@ -80,6 +86,8 @@
 ### 500 - Generic Error
 
 # /users/me/ballots/{id} [DELETE]
+## Description
+Delete the ballot bound to the authenticated user
 ## Responses
 ### 202 - Command Accepted
 ### 401 - Unathenticated

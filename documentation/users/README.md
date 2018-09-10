@@ -1,6 +1,10 @@
 # users/ [GET]
-
+## Description
+Used to get all users in the system (TODO: lock this down prior to go-live)
 Get all users in the database. Currently available to all authenticated users
+
+## Notes
+Child endpoints off of the /users endpoint need to be authenticated, otherwise all calls will receive a 401 Not Authenticated response.
 
 ## Response
 ```
@@ -24,7 +28,8 @@ Get all users in the database. Currently available to all authenticated users
 ```
 
 # /users [POST]
-
+## Description
+Used for user registration
 ## Request Body
 ```
 {

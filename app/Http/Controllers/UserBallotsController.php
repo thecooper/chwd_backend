@@ -16,11 +16,6 @@ class UserBallotsController extends Controller
         $this->middleware('ballot-valid-user:ballot')->except('index', 'store');
     }
 
-    // public function getRouteKeyName()
-    // {
-    //     return 'ballot_id';
-    // }
-
     /**
      * Display a listing of the resource.
      *
@@ -29,10 +24,6 @@ class UserBallotsController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
-        if($user == null) {
-            return response()->json(array('error' => 'Not authenticated'), 401);
-        }
 
         return response()->json($user->ballots, 200);
     }

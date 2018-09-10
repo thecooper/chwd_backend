@@ -31,7 +31,7 @@ class NewsAPIDataSource implements INewsDataSource {
     }
 
     /**
-     * @return array(NewsArticle)
+     * @return NewsArticle[]
      */
     private function process_api_result($result) {
         $result_json_decoded = json_decode($result);
