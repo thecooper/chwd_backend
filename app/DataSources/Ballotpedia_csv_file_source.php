@@ -181,7 +181,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
     private function derive_district_identifier($district_name) {
         // TODO: refactor district identifier into more extensible code
-        $match_count = preg_match_all('/District ([\d\w]+)|Circuit Place ([\d]+)/', $district_name, $matches, PREG_SET_ORDER);
+        $match_count = preg_match_all('/District ([\d]+|[a-zA-Z]\s)|Circuit Place ([\d]+)/', $district_name, $matches, PREG_SET_ORDER);
         
         if($match_count == 0 || $match_count == false) {
             return null;
