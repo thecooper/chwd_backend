@@ -8,7 +8,7 @@ class ConsolidatedCandidate extends Model
 {
     protected $primaryKey = 'id';
 
-    public function load($inputs)
+    public function load_fields($inputs)
     {
         CandidateLoader::load($this, $inputs);
         
@@ -19,5 +19,9 @@ class ConsolidatedCandidate extends Model
 
     public function election() {
         return $this->belongsTo('App\Models\Election\ConsolidatedElection');
+    }
+
+    public function news() {
+        return $this->hasMany('App\News');
     }
 }

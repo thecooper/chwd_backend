@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConsolidatedElection extends Model
 {
-    public function load($inputs)
+    public function load_fields($inputs)
     {
         ElectionLoader::load($this, $inputs);
         

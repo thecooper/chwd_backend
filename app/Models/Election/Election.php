@@ -27,7 +27,7 @@ class Election extends Model
      * Method for taking an array of field values and mapping them to the Election object
      * @return void
      */
-    public function load($inputs)
+    public function load_fields($inputs)
     {
         ElectionLoader::load($this, $inputs);
         $this->consolidated_election_id = $inputs['consolidated_election_id'];
@@ -48,11 +48,11 @@ class Election extends Model
 
         if($consolidated_election == null) {
             $consolidated_election = new ConsolidatedElection();
-            $consolidated_election->load($inputs);
+            $consolidated_election->load_fields($inputs);
             $consolidated_election->save();
 
             $new_election = new Election();
-            $new_election->load($inputs);
+            $new_election->load_fields($inputs);
             $new_election->consolidated_election_id = $consolidated_election->id;
             $new_election->save();
 
@@ -66,7 +66,7 @@ class Election extends Model
     
             $inputs['consolidated_election_id'] = $consolidated_election->id;
             
-            $election->load($inputs);
+            $election->load_fields($inputs);
     
             $election->save();
 

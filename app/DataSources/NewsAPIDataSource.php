@@ -30,6 +30,9 @@ class NewsAPIDataSource implements INewsDataSource {
         return $this->process_api_result($api_result);
     }
 
+    /**
+     * @return NewsArticle[]
+     */
     private function process_api_result($result) {
         $result_json_decoded = json_decode($result);
 
@@ -39,10 +42,11 @@ class NewsAPIDataSource implements INewsDataSource {
 
         $processed_articles = array();
         
+        
         foreach($articles as $article) {
             $new_article = new NewsArticle();
             $new_article->url = $article->url;
-            $new_article->thumbnail_url = $article->description;
+            $new_article->thumbnail_url = $article->urlToImage;
             $new_article->title = $article->title;
             $new_article->description = $article->description;
             $new_article->publish_date = $article->publishedAt;

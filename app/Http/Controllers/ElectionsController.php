@@ -116,7 +116,6 @@ class ElectionsController extends Controller
             }
 
             if(array_search("races", $include_fields) !== false) {
-                print_r("Here");
                 $election->races = $this->aggregate_races_from_candidates($election->candidates);
                 unset($election->candidates);
             }
