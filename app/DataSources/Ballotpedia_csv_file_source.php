@@ -16,7 +16,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         'name' => 1,
         'first_name' => 2,
         'last_name' => 3,
-        'url' => 4,
+        'ballotpedia_url' => 4,
         'candidates_id' => 5,
         'party_affiliation' => 6,
         'race_id' => 7,
@@ -75,7 +75,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                         continue;
                     }
 
-                    // if($result->processed_line_count >= 1000) { break; }
+                    if($result->processed_line_count >= 5000) { break; }
                     
                     $this->field_mapper->load_fields($fields);
 

@@ -18,6 +18,7 @@ class CandidateLoader {
         $model->district_type = $inputs['district_type'];
         $model->district = $inputs['district'];
         $model->district_identifier = $inputs['district_identifier'];
+        $model->ballotpedia_url = $inputs['ballotpedia_url'];
         $model->website_url = $inputs['website_url'];
         $model->donate_url = $inputs['donate_url'];
         $model->facebook_profile = $inputs['facebook_profile'];

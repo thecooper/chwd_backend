@@ -78,6 +78,7 @@ class InitialTableMigration extends Migration
                 $table->string('district_type');
                 $table->string('district');
                 $table->string('district_identifier', 4)->nullable();
+                $table->string('ballotpedia_url')->nullable();
                 $table->string('website_url')->nullable();
                 $table->string('donate_url')->nullable();
                 $table->string('facebook_profile')->nullable();
@@ -100,6 +101,7 @@ class InitialTableMigration extends Migration
                 $table->string('district_type')->nullable();
                 $table->string('district')->nullable();
                 $table->string('district_identifier', 4)->nullable();
+                $table->string('ballotpedia_url')->nullable();
                 $table->string('website_url')->nullable();
                 $table->string('donate_url')->nullable();
                 $table->string('facebook_profile')->nullable();
