@@ -37,6 +37,10 @@ Route::middleware('auth.basic')->group(function () {
 
         Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
 
+        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, UserBallot $ballot, ConsolidatedCandidate $candidate) {
+            return response()->json($candidate->news, 200);
+        })->middleware('ballot-valid-user:ballot');
+
         Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
 
         Route::get('ballots/{ballot}/news', function(Request $request, UserBallot $ballot) {
@@ -45,14 +49,14 @@ Route::middleware('auth.basic')->group(function () {
             return response()->json($ballot_manager->get_news_from_ballot($ballot), 200);
         })->middleware('ballot-valid-user:ballot');
 
-        Route::get('ballots/{ballot}/candidates/tweets', function(Request $request, UserBallot $ballot) {
+        Route::get('ballots/{ballot}/tweets', function(Request $request, UserBallot $ballot) {
             return response()->json([], 200);
         })->middleware('ballot-valid-user:ballot');
     });
 
-    Route::resource('elections', 'ElectionsController')->only('index', 'show');
-    Route::get('elections/{id}/races', 'ElectionsController@races');
-    Route::get('elections/{id}/candidates', 'ElectionsController@election_candidates');
+    // Route::resource('elections', 'ElectionsController')->only('index', 'show');
+    // Route::get('elections/{id}/races', 'ElectionsController@races');
+    // Route::get('elections/{id}/candidates', 'ElectionsController@election_candidates');
 
 });
 

@@ -22,6 +22,6 @@ class ConsolidatedCandidate extends Model
     }
 
     public function news() {
-        return $this->hasMany('App\News');
+        return $this->hasMany('App\News', 'candidate_id');
     }
 }
