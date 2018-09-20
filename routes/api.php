@@ -38,7 +38,7 @@ Route::middleware('auth.basic')->group(function () {
         Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
 
         Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, UserBallot $ballot, ConsolidatedCandidate $candidate) {
-            return response()->json($candidate->news, 200);
+            return response()->json($candidate->news->take(10), 200);
         })->middleware('ballot-valid-user:ballot');
 
         Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
