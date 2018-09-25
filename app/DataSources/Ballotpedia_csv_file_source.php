@@ -46,8 +46,18 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $this->field_mapper = $field_mapper;
     }
 
-    public function Process(DataSourceConfig $data_source_config)
+    public function Process(DataSourceConfig $config)
     {
+        $input_directory = "";
+        $import_limit = -1;
+
+        if($config instanceof FileDataSourceConfig) {
+            $input_directory = $config->input_directory;
+            $import_limit = $config->import_limit;
+        } else {
+            throw new Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
+        }
+        
         $result = new DataSourceImportResult();
 
         $ballotpedia_data_source = App\DataSource::where('name', 'ballotpedia')->first();
@@ -63,7 +73,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $processed_election_ids = array();
 
         // TODO: refactor this to have another class (or abstract class) simply provide lines for this class to process
-        foreach (DirectoryScanner::getFileHandles($data_source_config->input_directory) as $file_handle) {
+        foreach (DirectoryScanner::getFileHandles($config->input_directory) as $file_handle) {
             if ($file_handle != false) {
                 $header_read = false;
                
@@ -75,7 +85,9 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                         continue;
                     }
 
-                    if($result->processed_line_count >= 5000) { break; }
+                    if($import_limit !== -1) {
+                        if($result->processed_line_count >= $import_limit) { break; }
+                    }
                     
                     $this->field_mapper->load_fields($fields);
 

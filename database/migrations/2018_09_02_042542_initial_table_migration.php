@@ -172,6 +172,17 @@ class InitialTableMigration extends Migration
                 $table->foreign('candidate_id')->references('id')->on('consolidated_candidates')->onDelete('cascade');
             });
         }
+
+        if(!Schema::hasTable('candidate_news_imports')) {
+            Schema::create('candidate_news_imports', function(Blueprint $table) {
+                $table->integer('candidate_id')->unsigned();
+                $table->datetime('last_updated_timestamp')->nullable();
+
+                $table->index('candidate_id');
+                
+                $table->foreign('candidate_id')->references('id')->on('consolidated_candidates')->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -181,6 +192,7 @@ class InitialTableMigration extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('candidate_news_imports');
         Schema::dropIfExists('user_ballot_candidates');
         Schema::dropIfExists('user_news');
         Schema::dropIfExists('user_ballots');

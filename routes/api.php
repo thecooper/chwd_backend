@@ -20,7 +20,7 @@ use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\Models\BallotManager;
 use App\Models\Election\ConsolidatedElection;
 use App\Models\Candidate\ConsolidatedCandidate;
-use App\Jobs\ProcessElectionNews;
+use App\Jobs\SelectElectionToProcessNews;
 
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
@@ -65,6 +65,6 @@ Route::resource('candidates', 'CandidatesController')->only('index', 'show');
 // User Registration
 Route::post('users', 'UsersController@store');
 
-Route::get('elections/{election}/news', function(Request $request, ConsolidatedElection $election) {
-    ProcessElectionNews::dispatch($election);
+Route::get('elections/{election_id}', function($election_id) {
+    (new SelectCandidatesToProcessNews())->handle();
 });

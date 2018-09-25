@@ -3,6 +3,7 @@
 namespace App\Models\Election;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ConsolidatedElection extends Model
 {

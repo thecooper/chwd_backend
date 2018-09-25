@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\DataSources\FileDataSourceConfig as FileDataSourceConfig;
+use App\DataSources\FileDataSourceConfig;
 use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\DataSources\FieldMapper;
 
@@ -47,7 +47,10 @@ class import extends Command
         $ballotpedia_importer = new Ballotpedia_CSV_File_Source($field_mapper);
 
         if($ballotpedia_importer->CanProcess()) {
-            $config = new FileDataSourceConfig(env('APP_BALLOTPEDIA_IMPORT_DIR'));
+            $config = new FileDataSourceConfig();
+            $config->input_directory = env('BALLOTPEDIA.IMPORT_DIR');
+            $config->import_limit = env('BALLOTPEDIA.IMPORT_LIMIT', -1);
+            
             $import_result = $ballotpedia_importer->Process($config);
             $line_count = $import_result->processed_line_count;
             // echo `Processed {$line_count} lines`;
