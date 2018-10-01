@@ -108,6 +108,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
     {
         $input_directory = "";
         $import_limit = -1;
+        $debugging = env("APP_DEBUG", false);
 
         if($config instanceof FileDataSourceConfig) {
             $input_directory = $config->input_directory;
@@ -116,7 +117,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
             throw new Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
         }
 
-        if($import_limit === -1) {
+        if($import_limit === -1 && $debugging) {
             echo "Running the entire import for the Ballotpedia file\n";
         }
         
@@ -164,7 +165,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
                     if(!array_key_exists($election_hash, $processed_election_ids)) {
                         $new_election_id = $this->save_election($line_fields);
-                        print_r("Election ID for value $election_pre_hash: $new_election_id\n");
+                        if($debugging) { print_r("Election ID for value $election_pre_hash: $new_election_id\n"); }
                         $processed_election_ids[$election_hash] = $new_election_id;
                     }
 
