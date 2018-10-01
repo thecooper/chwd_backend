@@ -196,7 +196,7 @@ class InitialTableMigration extends Migration
         Schema::dropIfExists('user_ballot_candidates');
         Schema::dropIfExists('user_news');
         Schema::dropIfExists('user_ballots');
-        Schema::dropIfExists('news');
+        // Schema::dropIfExists('news');
         Schema::dropIfExists('candidates');
         Schema::dropIfExists('consolidated_candidates');
         Schema::dropIfExists('elections');

@@ -11,7 +11,7 @@ use \Exception;
 
 class Ballotpedia_CSV_File_Source implements IDataSource
 {
-    public static $column_mapping = array(
+    public static $column_mapping = [
         'state' => 0,
         'name' => 1,
         'first_name' => 2,
@@ -32,7 +32,69 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         'website_url' => 17,
         'facebook_profile' => 18,
         'twitter_handle' => 19
-    );
+    ];
+
+    private static $state_lookup = [
+        "AL" => "Alabama",
+        "AK" => "Alaska",
+        "AS" => "American Samoa",
+        "AZ" => "Arizona",
+        "AR" => "Arkansas",
+        "CA" => "California",
+        "CO" => "Colorado",
+        "CT" => "Connecticut",
+        "DE" => "Delaware",
+        "DC" => "District of Columbia",
+        "FM" => "Federated States of Micronesia",
+        "FL" => "Florida",
+        "GA" => "Georgia",
+        "GU" => "Guam",
+        "HI" => "Hawaii",
+        "ID" => "Idaho",
+        "IL" => "Illinois",
+        "IN" => "Indiana",
+        "IA" => "Iowa",
+        "KS" => "Kansas",
+        "KY" => "Kentucky",
+        "LA" => "Louisiana",
+        "ME" => "Maine",
+        "MH" => "Marshall Islands",
+        "MD" => "Maryland",
+        "MA" => "Massachusetts",
+        "MI" => "Michigan",
+        "MN" => "Minnesota",
+        "MS" => "Mississippi",
+        "MO" => "Missouri",
+        "MT" => "Montana",
+        "NE" => "Nebraska",
+        "NV" => "Nevada",
+        "NH" => "New Hampshire",
+        "NJ" => "New Jersey",
+        "NM" => "New Mexico",
+        "NY" => "New York",
+        "NC" => "North Carolina",
+        "ND" => "North Dakota",
+        "MP" => "Northern Mariana Islands",
+        "OH" => "Ohio",
+        "OK" => "Oklahoma",
+        "OR" => "Oregon",
+        "PW" => "Palau",
+        "PA" => "Pennsylvania",
+        "PR" => "Puerto Rico",
+        "RI" => "Rhode Island",
+        "SC" => "South Carolina",
+        "SD" => "South Dakota",
+        "TN" => "Tennessee",
+        "TX" => "Texas",
+        "UT" => "Utah",
+        "VT" => "Vermont",
+        "VI" => "Virgin Islands",
+        "VA" => "Virginia",
+        "WA" => "Washington",
+        "WV" => "West Virginia",
+        "WI" => "Wisconsin",
+        "WY" => "Wyoming"
+    ];
 
     private $field_mapper;
     private $data_source_id;
@@ -97,19 +159,21 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     $election_g_election_date = $line_fields['general_election_date'];
                     $electoin_r_election_date = $line_fields['general_runoff_election_date'];
 
-                    $election_hash = hash("md5", $election_state.$election_g_election_date.$electoin_r_election_date);
+                    $election_pre_hash = $election_state.$election_g_election_date.$electoin_r_election_date;
+                    $election_hash = hash("md5", $election_pre_hash);
 
-                    if(false == array_search($election_hash, $processed_election_ids)) {
+                    if(!array_key_exists($election_hash, $processed_election_ids)) {
                         $new_election_id = $this->save_election($line_fields);
+                        print_r("Election ID for value $election_pre_hash: $new_election_id\n");
                         $processed_election_ids[$election_hash] = $new_election_id;
                     }
-                    
+
                     $translated_election_id = null;
                     
                     try {
                         $translated_eleciton_id = $processed_election_ids[$election_hash];
                     } catch (Exception $ex) {
-                        throw new Exception("There was a problem setting the translated_election_id on line " . $result->processed_line_count);
+                        throw new Exception("There was a problem setting the translated_election_id for value $election_pre_hash on line " . $result->processed_line_count);
                     }
 
                     $this->save_candidate($line_fields, $translated_eleciton_id);
@@ -149,7 +213,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
     private function election_name_generator($fields) {
         // TODO: factor this out to separate static method on another class for easier unit testing
-        $district_name = $fields['election_dates_district_name'];
+        $district_name = Ballotpedia_CSV_File_Source::$state_lookup[$fields['state']];
 
         $general_election_date = null;
         $general_election_date_value = $fields['general_election_date'];
