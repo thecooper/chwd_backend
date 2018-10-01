@@ -53,7 +53,7 @@ class import extends Command
             
             $import_result = $ballotpedia_importer->Process($config);
             $line_count = $import_result->processed_line_count;
-            echo `Processed {$line_count} lines`;
+            echo "Processed $line_count lines";
         }
     }
 }
