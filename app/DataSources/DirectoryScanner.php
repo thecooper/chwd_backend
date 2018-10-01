@@ -26,7 +26,8 @@ class DirectoryScanner
 
                 $full_file_path = join('/', [$directory, $file]);
                 // print_r($full_file_path . '<br/>');
-
+                print_r("Processing file: " . $full_file_path);
+                
                 if (is_file($full_file_path)) {
                     // print_r('Found file to process: {$file}<br/>');
                     $handle = fopen($full_file_path, 'r');
