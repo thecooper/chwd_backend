@@ -91,25 +91,25 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     
                     $this->field_mapper->load_fields($fields);
 
-                    $election_date_id = $this->field_mapper->get_value('election_date_id');
-                    
-                    if($election_date_id == '' || $election_date_id == null) {
-                        continue;
-                    }
-
                     $line_fields = $this->field_mapper->get_fields();
                     
-                    if(false == array_search($election_date_id, $processed_election_ids)) {
+                    $election_state = $line_fields['state'];
+                    $election_g_election_date = $line_fields['general_election_date'];
+                    $electoin_r_election_date = $line_fields['general_runoff_election_date'];
+
+                    $election_hash = hash("md5", $election_state.$election_g_election_date.$electoin_r_election_date);
+
+                    if(false == array_search($election_hash, $processed_election_ids)) {
                         $new_election_id = $this->save_election($line_fields);
-                        $processed_election_ids[$election_date_id] = $new_election_id;
+                        $processed_election_ids[$election_hash] = $new_election_id;
                     }
                     
                     $translated_election_id = null;
                     
                     try {
-                        $translated_eleciton_id = $processed_election_ids[$election_date_id];
+                        $translated_eleciton_id = $processed_election_ids[$election_hash];
                     } catch (Exception $ex) {
-                        throw new Exception("There was a problem setting the translated_election_id using value " . $election_date_id . " on line " . $this->line_count);
+                        throw new Exception("There was a problem setting the translated_election_id on line " . $result->processed_line_count);
                     }
 
                     $this->save_candidate($line_fields, $translated_eleciton_id);
