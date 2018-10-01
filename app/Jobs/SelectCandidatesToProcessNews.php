@@ -80,7 +80,7 @@ class SelectCandidatesToProcessNews implements ShouldQueue
     }
 
     private function get_candidates_for_news_import($import_limit, $refresh_before_timestamp) {
-        if($import_limit === -1) {
+        if($import_limit == -1) {
             return ConsolidatedCandidate::all();
         } else {
             $candidate_ids_to_process = collect(DB::select($this->candidate_update_id_query, [$refresh_before_timestamp, $import_limit]))
