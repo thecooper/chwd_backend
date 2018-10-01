@@ -53,6 +53,10 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         } else {
             throw new Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
         }
+
+        if($import_limit === -1) {
+            echo "Running the entire import for the Ballotpedia file\n";
+        }
         
         $result = new DataSourceImportResult();
 
@@ -83,8 +87,6 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
                     if($import_limit !== -1) {
                         if($result->processed_line_count >= $import_limit) { break; }
-                    } else {
-                        echo "Running the entire import for the Ballotpedia file\n";
                     }
                     
                     $this->field_mapper->load_fields($fields);
