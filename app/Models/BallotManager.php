@@ -98,8 +98,9 @@ class BallotManager {
 
         foreach($elections as $election) {
             $election_candidates = array_merge($election_candidates, 
-                $this->get_candidates_without_district($election->candidates),
+                $this->get_candidates_from_local($election->candidates, $ballot->county),
                 $this->get_candidates_from_congressional_district($election->candidates, $ballot->congressional_district),
+                $this->get_candidates_from_state($election->candidates),
                 $this->get_candidates_from_state_senate($election->candidates, $ballot->state_legislative_district),
                 $this->get_candidates_from_state_house($election->candidates, $ballot->state_house_district),
                 $this->get_candidates_from_county($election->candidates, $ballot->county),
@@ -118,6 +119,22 @@ class BallotManager {
         return $candidates_collection
             ->where('district_identifier', null)
             ->where('district_type', '<>', 'City')
+            ->toArray();
+    }
+
+    private function get_candidates_from_local($candidates_collection, $district_id) {
+      return $candidates_collection
+            ->where('office_level', 'Local')
+            ->filter(function($value, $key) use ($district_id) {
+                return strpos($value->district, $district_id) !== false;
+            })
+            ->toArray();
+    }
+
+    private function get_candidates_from_state($candidates_collection) {
+      return $candidates_collection
+            ->where('office_level', 'State')
+            ->where('district_type', 'State')
             ->toArray();
     }
 

@@ -24,10 +24,8 @@ class UserBallotCandidatesController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request, UserBallot $ballot_id)
-    {
-        $ballot = UserBallot::find($ballot_id)->first();
-        
-        $candidates = collect($this->ballot_manager->get_candidates_from_ballot($ballot))
+    {   
+        $candidates = collect($this->ballot_manager->get_candidates_from_ballot($ballot_id))
             ->groupBy('district_type')
             ->map(function($value) {
                 return $value->groupBy('office');
