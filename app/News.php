@@ -8,6 +8,10 @@ use \DateTime;
 
 class News extends Model
 {
+
+  public function consolidated_candidate() {
+    return $this->belongsTo('App\Models\Candidate\ConsolidatedCandidate', 'candidate_id');
+  }
     //
     public static function save_articles($articles, $candidate_id) {
         foreach($articles as $article) {

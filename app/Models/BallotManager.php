@@ -51,11 +51,13 @@ class BallotManager {
      * @return News[]
      */
     public function get_news_from_ballot(UserBallot $ballot) {
-        $candidates = $this->get_candidates_from_ballot($ballot);
+        $candidates = collect($this->get_candidates_from_ballot($ballot));
         
-        $candidate_ids = collect($candidates)->pluck('id')->toArray();
-
-        $news_articles = News::whereIn('candidate_id', $candidate_ids)->get();
+        $candidate_ids = $candidates->pluck('id');
+        
+        $news_articles = News::with('consolidated_candidate:id,name,office')
+          ->whereIn('candidate_id', $candidate_ids)
+          ->get();
 
         return $news_articles;
     }

@@ -27,6 +27,10 @@ use App\Jobs\SelectElectionToProcessNews;
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index');
 
+    Route::get('news', function(Request $request) {
+      return News::orderByDesc('publish_date')->get();
+    });
+    
     Route::prefix('users/me')->group(function() {
         Route::get('', 'UsersController@show');
 
@@ -38,7 +42,20 @@ Route::middleware('auth.basic')->group(function () {
         Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
 
         Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, UserBallot $ballot, ConsolidatedCandidate $candidate) {
-            return response()->json($candidate->news->take(10), 200);
+            return response()->json(
+              $candidate
+                ->news
+                ->sortByDesc('publish_date')
+                ->flatten()
+                ->take(10)
+                ->map(function($news, $key) use ($candidate) {
+                  $news->consolidated_candidate = new stdClass();
+                  $news->consolidated_candidate->candidate_id = $candidate->id;
+                  $news->consolidated_candidate->office = $candidate->office;
+                  $news->consolidated_candidate->name = $candidate->name;
+                  return $news;
+                })
+                , 200);
         })->middleware('ballot-valid-user:ballot');
 
         Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
@@ -46,7 +63,13 @@ Route::middleware('auth.basic')->group(function () {
         Route::get('ballots/{ballot}/news', function(Request $request, UserBallot $ballot) {
             $ballot_manager = new BallotManager();
 
-            return response()->json($ballot_manager->get_news_from_ballot($ballot), 200);
+            $news_articles = $ballot_manager
+              ->get_news_from_ballot($ballot)
+              ->sortByDesc('publish_date')
+              ->flatten()
+              ->take(20);
+
+            return response()->json($news_articles, 200);
         })->middleware('ballot-valid-user:ballot');
 
         Route::get('ballots/{ballot}/tweets', function(Request $request, UserBallot $ballot) {

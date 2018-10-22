@@ -1,10 +1,7 @@
-# /users/me/ballots/{ballot_id}/candidates/{candidate_id}/news [GET]
+# /users/me/ballots/{ballot_id}/news [GET]
 
 ## Description
-Gets all the news articles for a given candidate based on *candidate_id*
-
-## TODO:
-Perhaps migrate this functionality to a better place?
+Gets all the news articles that relate to all the candidates that qualify for a given ballot based on *ballot_id*
 
 ## Responses
 ### 200 - OK
