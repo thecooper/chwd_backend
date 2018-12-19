@@ -54,7 +54,7 @@ class UsersController extends Controller
      */
     public function show(Request $request)
     {
-        return $request->user();
+        return response()->json($request->user(), 200);
     }
 
     /**

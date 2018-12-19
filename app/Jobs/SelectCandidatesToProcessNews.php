@@ -95,7 +95,7 @@ class SelectCandidatesToProcessNews implements ShouldQueue
         $articles = $news_data_source->get_articles($query);
         $article_count = count($articles);
         if($article_count > 0) {
-            echo "Found {$article_count} article(s) to load\n";
+            echo "For candidate {$candidate->id} Found {$article_count} article(s) to load\n";
         }
         News::save_articles($articles, $candidate->id);
     }
