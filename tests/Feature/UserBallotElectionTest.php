@@ -5,23 +5,25 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\Election\Election;
-use App\Models\Candidate\Candidate;
 
-class UserBallotElection extends TestCase
+use App\DataLayer\Election\Election;
+use App\DataLayer\Candidate\Candidate;
+
+class BallotElection extends TestCase
 {
   use RefreshDatabase;
 
-  public function testGetUserBallotElections()
+  public function testGetBallotElections()
   {
     // Arrange
-    $user = factory(\App\User::class)->create();
+    $user = factory(\App\DataLayer\User::class)->create();
     
-    $ballot = factory(\App\UserBallot::class)->create([
-      'user_id' => $user->id
+    $ballot = factory(\App\DataLayer\Ballot\Ballot::class)->create([
+      'user_id' => $user->id,
+      'congressional_district' => 12
     ]);
 
-    $datasource = factory(\App\DataSource::class)->create();
+    $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
 
     $election = Election::createOrUpdate([
       'name'=>'Some State Election',
@@ -44,7 +46,7 @@ class UserBallotElection extends TestCase
       'is_incumbent' => 1,
       'district_type' => 'Congress',
       'district' => 'Washington DC',
-      'district_identifier' => '1',
+      'district_identifier' => 12,
       'ballotpedia_url' => 'https://www.google.com',
       'website_url' => 'https://www.yahoo.com',
       'donate_url' => 'https://www.redcross.com',

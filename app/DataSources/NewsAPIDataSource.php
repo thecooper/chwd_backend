@@ -3,7 +3,7 @@
 namespace App\DataSources;
 
 use \Exception;
-use App\Models\NewsArticle;
+use App\BusinessLogic\Models\NewsArticle;
 
 class NewsAPIDataSource implements INewsDataSource {
     private $api_key;

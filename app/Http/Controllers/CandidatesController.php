@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Candidate\ConsolidatedCandidate;
 
 class CandidatesController extends Controller
 {

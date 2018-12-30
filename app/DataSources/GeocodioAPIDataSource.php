@@ -2,10 +2,11 @@
 
 namespace App\DataSources;
 
-use \Exception;
-use App\Models\Address;
-use App\Models\Districts;
-use App\Models\Location;
+// use \Exception;
+// use App\BusinessLogic\Models;
+use App\BusinessLogic\Models\Districts;
+use App\BusinessLogic\Models\Location;
+use App\BusinessLogic\Models\Address;
 
 class GeocodioAPIDataSource
 {
@@ -15,7 +16,7 @@ class GeocodioAPIDataSource
         $this->api_key = env('GEOCODIO_API_KEY', null);
 
         if($this->api_key == null) {
-            throw new Exception("Geocodio API Key was not provided in configuration");
+            throw new \Exception("Geocodio API Key was not provided in configuration");
         }
     }
 
@@ -70,7 +71,7 @@ class GeocodioAPIDataSource
             }
             
             curl_close($ch);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }

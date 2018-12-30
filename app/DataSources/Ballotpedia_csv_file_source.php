@@ -2,12 +2,10 @@
 
 namespace App\DataSources;
 
-use App\Models\Candidate\Candidate;
-use App\Models\Election\ConsolidatedElection;
-use App\Models\Election\Election;
-use App;
-
-use \Exception;
+use App\DataLayer\Candidate\Candidate;
+use App\DataLayer\Election\ConsolidatedElection;
+use App\DataLayer\Election\Election;
+use App\DataLayer\DataSource\DataSource;
 
 class Ballotpedia_CSV_File_Source implements IDataSource
 {
@@ -114,7 +112,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
             $input_directory = $config->input_directory;
             $import_limit = $config->import_limit;
         } else {
-            throw new Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
+            throw new \Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
         }
 
         if($import_limit === -1 && $debugging) {
@@ -123,7 +121,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         
         $result = new DataSourceImportResult();
 
-        $ballotpedia_data_source = App\DataSource::where('name', 'ballotpedia')->first();
+        $ballotpedia_data_source = DataSource::where('name', 'ballotpedia')->first();
         
         if($ballotpedia_data_source == null) {
             throw new \Exception('No datasource has been established for Ballotpedia');
@@ -173,8 +171,8 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     
                     try {
                         $translated_eleciton_id = $processed_election_ids[$election_hash];
-                    } catch (Exception $ex) {
-                        throw new Exception("There was a problem setting the translated_election_id for value $election_pre_hash on line " . $result->processed_line_count);
+                    } catch (\Exception $ex) {
+                        throw new \Exception("There was a problem setting the translated_election_id for value $election_pre_hash on line " . $result->processed_line_count);
                     }
 
                     $this->save_candidate($line_fields, $translated_eleciton_id);
@@ -221,7 +219,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
         try {
             $general_election_date = new \DateTime($general_election_date_value);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             throw new \Exception('Unable to parse date for field general_election_date: ' . $general_election_date_value);
         }
 

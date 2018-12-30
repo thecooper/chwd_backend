@@ -2,7 +2,7 @@
 
 use Faker\Generator as Faker;
 
-$factory->define(\App\Models\Candidate\Candidate::class, function (Faker $faker) {
+$factory->define(\App\DataLayer\Candidate\Candidate::class, function (Faker $faker) {
     return [
       'name' => $faker->name,
       // 'election_id' => null,

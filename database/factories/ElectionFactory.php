@@ -2,7 +2,7 @@
 
 use Faker\Generator as Faker;
 
-$factory->define(\App\Models\Election\Election::class, function (Faker $faker) {
+$factory->define(\App\DataLayer\Election\Election::class, function (Faker $faker) {
     return [
       // 'consolidated_election_id' => ???,
       'name' => $faker->realText(rand(4,6)),

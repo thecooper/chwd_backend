@@ -2,7 +2,7 @@
 
 use Faker\Generator as Faker;
 
-$factory->define(\App\DataSource::class, function (Faker $faker) {
+$factory->define(\App\DataLayer\DataSource\DataSource::class, function (Faker $faker) {
     return [
         'name' => $faker->company
     ];

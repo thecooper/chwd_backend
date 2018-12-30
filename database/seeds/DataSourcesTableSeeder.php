@@ -11,10 +11,10 @@ class DataSourcesTableSeeder extends Seeder
      */
     public function run()
     {
-        $manual_ds = App\DataSource::create(array('name'=>'manual_input'));
-        $ballotpedia_ds = App\DataSource::create(array('name'=>'ballotpedia'));
+        $manual_ds = App\DataLayer\DataSource\DataSource::create(array('name'=>'manual_input'));
+        $ballotpedia_ds = App\DataLayer\DataSource\DataSource::create(array('name'=>'ballotpedia'));
 
-        App\Models\DataSourcePriority::create(
+        App\DataLayer\DataSource\DataSourcePriority::create(
             array(
                 'data_source_id' => $manual_ds->id,
                 'priority' => 0,
@@ -22,14 +22,14 @@ class DataSourcesTableSeeder extends Seeder
             ));
 
         
-        App\Models\DataSourcePriority::create(
+        App\DataLayer\DataSource\DataSourcePriority::create(
             array(
                 'data_source_id' => $ballotpedia_ds->id,
                 'priority' => 0,
                 'destination_table' => 'elections'
             ));
 
-        App\Models\DataSourcePriority::create(
+        App\DataLayer\DataSource\DataSourcePriority::create(
             array(
                 'data_source_id' => $manual_ds->id,
                 'priority' => 0,
@@ -37,7 +37,7 @@ class DataSourcesTableSeeder extends Seeder
             ));
 
         
-        App\Models\DataSourcePriority::create(
+        App\DataLayer\DataSource\DataSourcePriority::create(
             array(
                 'data_source_id' => $ballotpedia_ds->id,
                 'priority' => 0,

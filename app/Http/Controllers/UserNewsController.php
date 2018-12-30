@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\News;
+use App\DataLayer\News;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

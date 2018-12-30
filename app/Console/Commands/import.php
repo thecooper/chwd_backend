@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+
 use App\DataSources\FileDataSourceConfig;
 use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\DataSources\FieldMapper;

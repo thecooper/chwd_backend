@@ -9,10 +9,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 
-use App\News;
+use App\DataLayer\News;
 use App\DataSources\NewsAPIDataSource;
-use App\Models\Candidate\ConsolidatedCandidate;
-use App\Models\Election\ConsolidatedElection;
+use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Election\ConsolidatedElection;
 
 use \DateTime;
 use \DateInterval;

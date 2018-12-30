@@ -11,7 +11,7 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        App\User::create(
+        App\DataLayer\User::create(
             array(
                 'name' => 'Joe Schmoe',
                 'email' => 'fakeuser@symphonic.com',

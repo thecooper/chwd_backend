@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 
-use App\UserBallot;
+use App\DataLayer\Ballot\Ballot;
 
 class BallotValidUser
 {
@@ -23,13 +23,13 @@ class BallotValidUser
         $user = $request->user();
 
         if(!is_numeric($route_parameter)) {
-            if(get_class($route_parameter) == UserBallot::class) {
+            if(get_class($route_parameter) == Ballot::class) {
                 $user_ballot = $route_parameter;
             } else {
                 return response()->json("ballot id ({$route_parameter}) is not numeric", 400);
             }
         } else {
-            $user_ballot = UserBallot::find($route_parameter);
+            $user_ballot = Ballot::find($route_parameter);
         }
 
         if($user_ballot == null) {

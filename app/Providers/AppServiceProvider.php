@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
-use App\DataSources\Ballotpedia_CSV_File_Source;
-use App\Models\EloquentModelTransferManager;
-use App\Models\Election\ElectionConsolidator;
-use App\Models\Candidate\CandidateConsolidator;
 use Illuminate\Support\ServiceProvider;
+
+use App\DataSources\Ballotpedia_CSV_File_Source;
+use App\DataLayer\EloquentModelTransferManager;
+use App\DataLayer\Election\ElectionConsolidator;
+use App\DataLayer\Candidate\CandidateConsolidator;
 
 class AppServiceProvider extends ServiceProvider
 {

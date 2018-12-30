@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Election\ConsolidatedElection;
-use App\Models\Election\Election;
-use App\Models\Election\ElectionConsolidator;
 use Illuminate\Http\Request;
+
+use App\DataLayer\Election\ConsolidatedElection;
+use App\DataLayer\Election\Election;
+use App\DataLayer\Election\ElectionConsolidator;
 
 class ElectionsController extends Controller
 {

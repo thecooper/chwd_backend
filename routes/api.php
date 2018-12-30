@@ -14,12 +14,12 @@
 use Illuminate\Http\Request;
 
 use App\News;
-use App\UserBallot;
+use App\DataLayer\Ballot\Ballot;
 use App\DataSources\NewsAPIDataSource;
 use App\DataSources\Ballotpedia_CSV_File_Source;
-use App\Models\BallotManager;
-use App\Models\Election\ConsolidatedElection;
-use App\Models\Candidate\ConsolidatedCandidate;
+use App\BusinessLogic\BallotManager;
+use App\DataLayer\Election\ConsolidatedElection;
+use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\Jobs\SelectElectionToProcessNews;
 
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
@@ -37,11 +37,11 @@ Route::middleware('auth.basic')->group(function () {
         // TODO: move the saved news functionality to /ballots/{ballot_id}/news/saved
         Route::resource('news', 'UserNewsController')->only('index', 'update', 'destroy');
         
-        Route::resource('ballots', 'UserBallotsController')->except('update');
+        Route::resource('ballots', 'BallotsController')->except('update');
 
-        Route::resource('ballots/{ballot_id}/candidates', 'UserBallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
+        Route::resource('ballots/{ballot_id}/candidates', 'BallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
 
-        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, UserBallot $ballot, ConsolidatedCandidate $candidate) {
+        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, Ballot $ballot, ConsolidatedCandidate $candidate) {
             return response()->json(
               $candidate
                 ->news
@@ -58,9 +58,9 @@ Route::middleware('auth.basic')->group(function () {
                 , 200);
         })->middleware('ballot-valid-user:ballot');
 
-        Route::resource('ballots/{ballot}/elections', 'UserBallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
+        Route::resource('ballots/{ballot}/elections', 'BallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
 
-        Route::get('ballots/{ballot}/news', function(Request $request, UserBallot $ballot) {
+        Route::get('ballots/{ballot}/news', function(Request $request, Ballot $ballot) {
             $ballot_manager = new BallotManager();
 
             $news_articles = $ballot_manager
@@ -72,7 +72,7 @@ Route::middleware('auth.basic')->group(function () {
             return response()->json($news_articles, 200);
         })->middleware('ballot-valid-user:ballot');
 
-        Route::get('ballots/{ballot}/tweets', function(Request $request, UserBallot $ballot) {
+        Route::get('ballots/{ballot}/tweets', function(Request $request, Ballot $ballot) {
             return response()->json([], 200);
         })->middleware('ballot-valid-user:ballot');
     });

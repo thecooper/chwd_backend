@@ -13,7 +13,7 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(\App\UserBallot::class, function (Faker $faker) {
+$factory->define(\App\DataLayer\Ballot\Ballot::class, function (Faker $faker) {
     return [
       'user_id' => $faker->randomDigit,
       'address_line_1' => $faker->streetAddress,

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+
+use App\DataLayer\User;
 
 class UsersController extends Controller
 {

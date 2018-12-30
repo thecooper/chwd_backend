@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\User;
+use App\DataLayer\User;
 
 class UserTest extends TestCase
 {
@@ -28,9 +28,9 @@ class UserTest extends TestCase
     }
 
     public function testGetAllUsers() {
-        $user = factory(User::class)->create();
+        $user = factory(\App\DataLayer\User::class)->create();
 
-        $otherUsers = factory(User::class, 2)->create();
+        $otherUsers = factory(\App\DataLayer\User::class, 2)->create();
 
         $response = $this->actingAs($user)
             ->get('/api/users');
@@ -40,7 +40,7 @@ class UserTest extends TestCase
     
     public function testGetMe()
     {
-        $user = factory(User::class)->create();
+        $user = factory(\App\DataLayer\User::class)->create();
 
         $response = $this->actingAs($user)
             ->get('/api/users/me');
