@@ -14,12 +14,12 @@ class ElectionConsolidator extends DataConsolidator
         parent::__construct($transfer_manager);
     }
 
-    protected function getModelsForConsolidation($id)
+    protected function getModelsForConsolidation($name)
     {
         return new ConsolidationBundle(
             "elections",
-            Election::where("name", $id)->get(),
-            ConsolidatedElection::where("name", $id)->first() ?? new ConsolidatedElection()
+            Election::where("name", $name)->get(),
+            ConsolidatedElection::where("name", $name)->first() ?? new ConsolidatedElection()
         );
     }
 }
