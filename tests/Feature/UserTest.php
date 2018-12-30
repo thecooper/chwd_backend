@@ -38,7 +38,7 @@ class UserTest extends TestCase
         $response->assertJsonCount(3);
     }
     
-    public function testGetUser()
+    public function testGetMe()
     {
         $user = factory(User::class)->create();
 
@@ -53,5 +53,45 @@ class UserTest extends TestCase
             'name'=>$user->name,
             'email'=>$user->email
         ]);
+    }
+
+    public function testGetUsersReturns401IfNotAuthenticated()
+    {
+      $response = $this->get('/api/users');
+      $response->assertStatus(401);
+    }
+
+    public function testGetMeReturns401IfNotAuthenticated()
+    {
+      $response = $this->get('/api/users/me');
+      $response->assertStatus(401);
+    }
+
+    public function testGetUsersReturns401IfAuthenticationCantFindUser()
+    {
+      $preBase64EncodeCredentials = "someuser:p@ssw0rd";
+      $encodedCredentials = base64_encode($preBase64EncodeCredentials);
+      $authenticationHeader = "Basic " . $encodedCredentials;
+
+      $response = $this
+        ->withHeaders([
+          'Authorization' => $authenticationHeader
+        ])
+        ->get('/api/users');
+      $response->assertStatus(401);
+    }
+
+    public function testGetMeReturns401IfAuthenticationCantFindUser()
+    {
+      $preBase64EncodeCredentials = "someuser:p@ssw0rd";
+      $encodedCredentials = base64_encode($preBase64EncodeCredentials);
+      $authenticationHeader = "Basic " . $encodedCredentials;
+
+      $response = $this
+        ->withHeaders([
+          'Authorization' => $authenticationHeader
+        ])
+        ->get('/api/users/me');
+      $response->assertStatus(401);
     }
 }
