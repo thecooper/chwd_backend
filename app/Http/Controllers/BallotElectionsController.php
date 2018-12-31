@@ -9,6 +9,11 @@ use App\BusinessLogic\BallotManager;
 
 class BallotElectionsController extends Controller
 {
+  private $ballot_manager;
+
+  public function __construct(BallotManager $ballot_manager) {
+    $this->ballot_manager = $ballot_manager;
+  }
     /**
      * Display a listing of the resource.
      *
@@ -16,10 +21,8 @@ class BallotElectionsController extends Controller
      */
     public function index(Request $request, Ballot $ballot)
     {
-        $ballot_manager = new BallotManager();
-
         // dd($election_candidates);
-        return response()->json($ballot_manager->get_elections_from_ballot($ballot), 200);
+        return response()->json($this->ballot_manager->get_elections_from_ballot($ballot), 200);
     }
 
     

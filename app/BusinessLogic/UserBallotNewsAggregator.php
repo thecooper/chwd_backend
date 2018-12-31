@@ -18,8 +18,6 @@ class BallotNewsAggregator {
         $query = $this->_build_candidate_name_query($candidates, $election->state_abbreviation);
 
         $articles = $news_data_source->get_articles($query);
-
-        dd($articles);
     }
 
     private function _build_candidate_name_query($candidates, $state) {

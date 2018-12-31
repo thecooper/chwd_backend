@@ -23,7 +23,7 @@ class UserTest extends TestCase
             'email' => 'jsmith@example.com',
             'password' => 'letmein',
         ]);
-
+        
         $response->assertStatus(201);
     }
 

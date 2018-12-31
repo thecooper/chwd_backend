@@ -60,9 +60,7 @@ Route::middleware('auth.basic')->group(function () {
 
         Route::resource('ballots/{ballot}/elections', 'BallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
 
-        Route::get('ballots/{ballot}/news', function(Request $request, Ballot $ballot) {
-            $ballot_manager = new BallotManager();
-
+        Route::get('ballots/{ballot}/news', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
             $news_articles = $ballot_manager
               ->get_news_from_ballot($ballot)
               ->sortByDesc('publish_date')

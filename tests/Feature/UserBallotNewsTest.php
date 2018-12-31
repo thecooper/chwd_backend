@@ -93,6 +93,7 @@ class BallotNews extends TestCase
       ->get('/api/users/me/ballots/'.$ballot->id.'/news');
 
     // Assert
+
     $response->assertOk();
     
     $response->assertJsonCount(2);

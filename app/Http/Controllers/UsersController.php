@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-use App\DataLayer\User;
+use App\BusinessLogic\UserManager;
 
 class UsersController extends Controller
 {
+  private $user_manager;
+
+  public function __construct(UserManager $user_manager) {
+    $this->user_manager = $user_manager;
+  }
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +22,7 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         // Do some permissions checking!!
-        return User::all();
+        return $this->user_manager->get_users();
     }
 
     /**
@@ -28,23 +33,20 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-
-            $input_params = $request->all();
-            validator($input_params)->validate();
-
-            $newUser = User::create([
-                'name' => $input_params['name'],
-                'email' => $input_params['email'],
-                'password' => Hash::make($input_params['password']),
-            ]);
-            
-            return response()->json($newUser, 201);
-        } catch (Exception $ex) {
-            return response()->json([
-                "error" => "could not create new user",
-            ], 500);
-        }
+      // $input_params = $request->all();
+      $name = $request->input('name');
+      $email = $request->input('email');
+      $password = $request->input('password');
+        
+      try {
+        $newUser = $this->user_manager->save_user($name, $email, $password);
+        return response()->json($newUser, 201);
+      } catch (Exception $ex) {
+        print_r($ex);
+          return response()->json([
+              "error" => "could not create new user: " . $ex->getMessage(),
+          ], 500);
+      }
     }
 
     /**
@@ -55,7 +57,8 @@ class UsersController extends Controller
      */
     public function show(Request $request)
     {
-        return response()->json($request->user(), 200);
+      $user = $this->user_manager->translate_user($request->user());
+        return response()->json($user, 200);
     }
 
     /**
@@ -86,12 +89,7 @@ class UsersController extends Controller
         return Validator::make($data, [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'address_line_1' => 'required|string',
-            'address_line_2' => 'required|string',
-            'city' => 'required|string',
-            'state_abbreviation' => 'required|string|max:2',
-            'zip' => 'required|string',
+            'password' => 'required|string|min:6|confirmed'
         ]);
     }
 }
