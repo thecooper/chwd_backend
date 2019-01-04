@@ -84,10 +84,10 @@ class BallotCandidateManager {
   public function get_candidates_from_elections($elections) {
     $election_candidates = array();
 
-      foreach($elections as $election) {
-          $election_candidates = array_merge($election_candidates, $election->candidates->toArray());
-      }
+    foreach($elections as $election) {
+        $election_candidates = array_merge($election_candidates, $election->candidates);
+    }
 
-      return collect($election_candidates);
+    return collect($election_candidates);
   }
 }

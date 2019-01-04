@@ -2,11 +2,13 @@
 
 namespace App\BusinessLogic\Models;
 
+use App\DataLayer\Candidate\CandidateDTO;
+
 class Candidate {
+  public $id;
   public $name;
-  public $election_id;
   public $party_affiliation;
-  public $election_status;
+  public $candidate_status;
   public $office;
   public $office_level;
   public $is_incumbent;
@@ -19,4 +21,12 @@ class Candidate {
   public $facebook_profile;
   public $twitter_handle;
   public $data_source_id;
+
+  public static function fromDatabaseModel($candidate_model) {
+    $candidate = new self();
+  
+    CandidateDTO::convert($candidate_model, $candidate);
+
+    return $candidate;
+  }
 }
