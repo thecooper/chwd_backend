@@ -5,23 +5,31 @@ namespace App\BusinessLogic;
 use App\DataLayer\Ballot\Ballot;
 
 class BallotCandidateFilter {
-  public function filter_candidates_by_ballot_location($candidates, Ballot $ballot) {
+  /**
+   * filter_candidates_by_ballot_location
+   *
+   * @param Candidate[] $candidates
+   * @param Ballot $ballot
+   * @return Candidate[]
+   */
+  public function filter_candidates_by_ballot_location(array $candidates, Ballot $ballot) {
+    $candidates_collection = collect($candidates);
     return collect(
-        array_merge(
-          $this->get_candidates_from_local($candidates, $ballot->county),
-          $this->get_candidates_from_congressional_district($candidates, $ballot->congressional_district),
-          $this->get_candidates_from_state($candidates),
-          $this->get_candidates_from_state_senate($candidates, $ballot->state_legislative_district),
-          $this->get_candidates_from_state_house($candidates, $ballot->state_house_district),
-          $this->get_candidates_from_county($candidates, $ballot->county),
-          $this->get_candidates_from_city($candidates, $ballot->city)
-        )
-    );
+      array_merge(
+        $this->get_candidates_from_local($candidates_collection, $ballot->county),
+        $this->get_candidates_from_congressional_district($candidates_collection, $ballot->congressional_district),
+        $this->get_candidates_from_state($candidates_collection),
+        $this->get_candidates_from_state_senate($candidates_collection, $ballot->state_legislative_district),
+        $this->get_candidates_from_state_house($candidates_collection, $ballot->state_house_district),
+        $this->get_candidates_from_county($candidates_collection, $ballot->county),
+        $this->get_candidates_from_city($candidates_collection, $ballot->city)
+      )
+    )->toArray();
   }
   
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_without_district($candidates_collection) {
     return $candidates_collection
@@ -47,8 +55,8 @@ class BallotCandidateFilter {
   }
 
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_from_congressional_district($candidates_collection, $district_id) {
       if($district_id == null) { return []; }
@@ -60,8 +68,8 @@ class BallotCandidateFilter {
   }
 
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_from_state_senate($candidates_collection, $district_id) {
       if($district_id == null) { return []; }
@@ -74,8 +82,8 @@ class BallotCandidateFilter {
   }
 
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_from_state_house($candidates_collection, $district_id) {
       if($district_id == null) { return []; }
@@ -88,8 +96,8 @@ class BallotCandidateFilter {
   }
 
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_from_city($candidates_collection, $city) {
       return $candidates_collection
@@ -99,8 +107,8 @@ class BallotCandidateFilter {
   }
 
   /**
-   * @param Collection<ConsolidatedCandidate>
-   * @return Collection<ConsolidatedCandidate>
+   * @param Collection<Candidate>
+   * @return Candidate[]
    */
   public function get_candidates_from_county($candidates_collection, $district_id) {
       if($district_id == null) { return []; }
@@ -108,7 +116,7 @@ class BallotCandidateFilter {
       return $candidates_collection
           ->where('office_level', 'Local')
           ->filter(function($value, $key) use ($district_id) {
-              return strpos(trim(str_replace("County", "", $value->district_name)), $district_id) !== false;
+              return strpos(trim(str_replace("County", "", $value->district)), $district_id) !== false;
           })
           ->toArray();
   }

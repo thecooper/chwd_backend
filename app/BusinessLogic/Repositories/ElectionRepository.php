@@ -22,8 +22,7 @@ class ElectionRepository implements Repository {
   }
 
   function allByStateWithCandidates($state_abbreviation) {
-    $election_models = $this->allByState($state_abbreviation);
-
+    $election_models = ConsolidatedElection::where('state_abbreviation', $state_abbreviation)->get();
     return $this->transferAllModels($election_models, true);
   }
 
@@ -56,7 +55,7 @@ class ElectionRepository implements Repository {
     $election_array = [];
     
     foreach($election_models as $election_model) {
-      array_push($election_array, $this->transferModel($election_model));
+      array_push($election_array, $this->transferModel($election_model, $include_candidates));
     }
 
     return $election_array;

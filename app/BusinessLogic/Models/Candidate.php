@@ -22,6 +22,8 @@ class Candidate {
   public $twitter_handle;
   public $data_source_id;
 
+  public $selected = false;
+
   public static function fromDatabaseModel($candidate_model) {
     $candidate = new self();
   

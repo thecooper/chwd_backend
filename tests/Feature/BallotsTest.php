@@ -114,7 +114,6 @@ class BallotsTest extends TestCase
     public function testGetBallots()
     {
       // Arrange
-
       $user = factory(\App\DataLayer\User::class)->create();
       factory(\App\DataLayer\Ballot\Ballot::class, 5)->create([
         'user_id' => $user->id
@@ -179,5 +178,92 @@ class BallotsTest extends TestCase
 
       // Assert
       $response->assertStatus(401);
+    }
+
+    public function testGetSingleBallot() {
+      // Arrange
+      $user = factory(\App\DataLayer\User::class)->create();
+      
+      $ballot1 = factory(\App\DataLayer\Ballot\Ballot::class)->create([
+        'user_id' => $user->id
+      ]);
+
+      // Act
+      $response1 = $this->actingAs($user)
+        ->get(ENDPOINT . '/' . (string)$ballot1->id);
+
+      // Assert
+      $response1
+        ->assertOk()
+        ->assertJson([
+          'id' => $ballot1->id,
+          'user_id' => $ballot1->user_id,
+          'address_line_1' => $ballot1->address_line_1,
+          'address_line_2' => $ballot1->address_line_2,
+          'city' => $ballot1->city,
+          'zip' => $ballot1->zip,
+          'county' => $ballot1->county,
+          'state_abbreviation' => $ballot1->state_abbreviation,
+          'congressional_district' => $ballot1->congressional_district,
+          'state_legislative_district' => $ballot1->state_legislative_district,
+          'state_house_district' => $ballot1->state_house_district
+        ]);
+    }
+
+    public function testGetSingleBallotWithinMultiple() {
+      // Arrange
+      $user = factory(\App\DataLayer\User::class)->create();
+      
+      $ballot1 = factory(\App\DataLayer\Ballot\Ballot::class)->create([
+        'user_id' => $user->id
+      ]);
+
+      $other_ballots = factory(\App\DataLayer\Ballot\Ballot::class)->create([
+        'user_id' => $user->id
+      ]);
+
+      $ballot2 = factory(\App\DataLayer\Ballot\Ballot::class)->create([
+        'user_id' => $user->id
+      ]);
+      
+      // Act
+      $response1 = $this->actingAs($user)
+        ->get(ENDPOINT . '/' . (string)$ballot1->id);
+      
+      $response2 = $this->actingAs($user)
+        ->get(ENDPOINT . '/' . (string)$ballot2->id);
+
+      // Assert
+      $response1
+        ->assertOk()
+        ->assertJson([
+          'id' => $ballot1->id,
+          'user_id' => $ballot1->user_id,
+          'address_line_1' => $ballot1->address_line_1,
+          'address_line_2' => $ballot1->address_line_2,
+          'city' => $ballot1->city,
+          'zip' => $ballot1->zip,
+          'county' => $ballot1->county,
+          'state_abbreviation' => $ballot1->state_abbreviation,
+          'congressional_district' => $ballot1->congressional_district,
+          'state_legislative_district' => $ballot1->state_legislative_district,
+          'state_house_district' => $ballot1->state_house_district
+        ]);
+
+        $response2
+        ->assertOk()
+        ->assertJson([
+          'id' => $ballot2->id,
+          'user_id' => $ballot2->user_id,
+          'address_line_1' => $ballot2->address_line_1,
+          'address_line_2' => $ballot2->address_line_2,
+          'city' => $ballot2->city,
+          'zip' => $ballot2->zip,
+          'county' => $ballot2->county,
+          'state_abbreviation' => $ballot2->state_abbreviation,
+          'congressional_district' => $ballot2->congressional_district,
+          'state_legislative_district' => $ballot2->state_legislative_district,
+          'state_house_district' => $ballot2->state_house_district
+        ]);
     }
 }

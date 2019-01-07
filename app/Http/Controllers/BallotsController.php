@@ -112,7 +112,6 @@ class BallotsController extends Controller
      */
     public function destroy(Ballot $ballot)
     {
-        // dd($id);
         // $user_ballot = Ballot::find($id);
 
         if($ballot == null) {

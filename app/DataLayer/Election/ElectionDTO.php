@@ -10,6 +10,5 @@ class ElectionDTO {
     $election->primary_election_date = $election_model->primary_election_date;
     $election->general_election_date = $election_model->general_election_date;
     $election->runoff_election_date = $election_model->runoff_election_date;
-    $election->data_source_id = $election_model->data_source_id;
   }
 }

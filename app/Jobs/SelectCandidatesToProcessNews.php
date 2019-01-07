@@ -64,7 +64,6 @@ class SelectCandidatesToProcessNews implements ShouldQueue
                 }
                 
                 if(!$import_dry_run) {
-                    // dd($candidate);
                     $candidate->set_last_news_update_timestamp(new DateTime());
                 }
             } catch (Exception $ex) {

@@ -9,13 +9,16 @@ use Illuminate\Support\Facades\DB;
 use App\DataLayer\Ballot\Ballot;
 use App\BusinessLogic\BallotManager;
 use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\BusinessLogic\Repositories\CandidateRepository;
 
 class BallotCandidatesController extends Controller
 {
     private $ballot_manager;
+    private $candidate_repository;
     
-    public function __construct(BallotManager $ballot_manager) {
+    public function __construct(BallotManager $ballot_manager, CandidateRepository $candidate_repository) {
         $this->ballot_manager = $ballot_manager;
+        $this->candidate_repository = $candidate_repository;
     }
     
     /**
@@ -66,16 +69,17 @@ class BallotCandidatesController extends Controller
      */
     public function update(Request $request, $ballot_id, $id)
     {
-        $ballot = Ballot::find($ballot_id);
-        $candidate = ConsolidatedCandidate::find($id);
+      $ballot = Ballot::find($ballot_id);
+      // $candidate = ConsolidatedCandidate::find($id);
+      $candidate = $this->candidate_repository->get($id);
+      
+      if($candidate == null) {
+          return response()->json("Candidate not found", 404);
+      }
 
-        if($candidate == null) {
-            return response()->json("Candidate not found", 404);
-        }
+      $this->ballot_manager->select_candidate($ballot, $candidate);
 
-        $this->ballot_manager->select_candidate($ballot, $candidate);
-
-        return Response::make(null, 201); //response()->json(null, 201);
+      return Response::make(null, 201);
     }
 
     /**

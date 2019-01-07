@@ -69,5 +69,7 @@ class BallotElection extends TestCase
       'general_election_date'=>'2018-11-07',
       'runoff_election_date'=>'2018-11-08',
     ]]);
+
+    $this->assertTrue(!isset($response->candidates));
   }
 }

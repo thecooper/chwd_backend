@@ -21,7 +21,6 @@ class BallotElectionsController extends Controller
      */
     public function index(Request $request, Ballot $ballot)
     {
-        // dd($election_candidates);
         return response()->json($this->ballot_manager->get_elections_from_ballot($ballot), 200);
     }
 
