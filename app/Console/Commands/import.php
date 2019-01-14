@@ -8,6 +8,9 @@ use App\DataSources\FileDataSourceConfig;
 use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\DataSources\FieldMapper;
 
+use App\BusinessLogic\Repositories\ElectionRepository;
+use App\BusinessLogic\ElectionFragmentCombiner;
+
 class import extends Command
 {
 
@@ -45,7 +48,9 @@ class import extends Command
     public function handle()
     {
         $field_mapper = new FieldMapper(Ballotpedia_CSV_File_Source::$column_mapping);
-        $ballotpedia_importer = new Ballotpedia_CSV_File_Source($field_mapper);
+        $election_fragment_combiner = new ElectionFragmentCombiner();
+        $election_repository = new ElectionRepository($election_fragment_combiner);
+        $ballotpedia_importer = new Ballotpedia_CSV_File_Source($field_mapper, $election_repository);
 
         if($ballotpedia_importer->CanProcess()) {
             $config = new FileDataSourceConfig();

@@ -3,9 +3,12 @@
 namespace App\DataSources;
 
 use App\DataLayer\Candidate\Candidate;
-use App\DataLayer\Election\ConsolidatedElection;
 use App\DataLayer\Election\ElectionFragment;
 use App\DataLayer\DataSource\DataSource;
+use App\DataLayer\DataSource\DatasourceDTO;
+
+use App\BusinessLogic\Repositories\ElectionRepository;
+use App\BusinessLogic\ElectionLoader;
 
 class Ballotpedia_CSV_File_Source implements IDataSource
 {
@@ -96,10 +99,12 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
     private $field_mapper;
     private $data_source_id;
+    private $election_repository;
 
-    public function __construct(FieldMapper $field_mapper)
+    public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository)
     {
         $this->field_mapper = $field_mapper;
+        $this->election_repository = $election_repository;
     }
 
     public function Process(DataSourceConfig $config)
@@ -162,7 +167,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     $election_hash = hash("md5", $election_pre_hash);
 
                     if(!array_key_exists($election_hash, $processed_election_ids)) {
-                        $new_election_id = $this->save_election($line_fields);
+                        $new_election_id = $this->save_election($line_fields, $ballotpedia_data_source);
                         if($debugging) { print_r("Election ID for value $election_pre_hash: $new_election_id\n"); }
                         $processed_election_ids[$election_hash] = $new_election_id;
                     }
@@ -194,10 +199,11 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         return true;
     }
     
-    private function save_election($fields) {
+    private function save_election($fields, $datasource_model) {
         $election_fields = array();
 
-        $election_fields['consolidated_election_id'] = null;
+        $election_fields['id'] = null;
+        $election_fields['election_id'] = null;
         $election_fields['name'] = $this->election_name_generator($fields);
         $election_fields['state_abbreviation'] = $fields['state'];
         $election_fields['primary_election_date'] = null;
@@ -205,9 +211,12 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $election_fields['runoff_election_date'] = $this->set_null_if_empty($fields['general_runoff_election_date']);
         $election_fields['data_source_id'] = $this->data_source_id;
 
-        $updated_or_created_election = Election::createOrUpdate($election_fields);
+        $datasource = DatasourceDTO::create($datasource_model);
+        
+        $updated_or_created_election = $this->election_repository
+          ->save(ElectionLoader::create($election_fields), $datasource);
 
-        return $updated_or_created_election->consolidated_election_id;
+        return $updated_or_created_election->id;
     }
 
     private function election_name_generator($fields) {

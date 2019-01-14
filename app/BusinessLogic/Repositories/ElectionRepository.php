@@ -46,6 +46,7 @@ class ElectionRepository {
   }
 
   function save(Election $entity, DataSource $datasource) {
+    // TODO: refactor so that only dataource->id is passed in since that's all that is necessary
     // Determine existing election id
     $election_already_exists = $this->exists($entity);
     
@@ -75,6 +76,7 @@ class ElectionRepository {
         ->toArray();
 
       // TODO: Refactor this out to another repo
+      // TODO: Ensure that this is being tested correctly. Logic may not be correct
       $priorities = DataSourcePriority::where('destination_table', 'elections')
         ->get()
         ->sortByDesc('priority')
