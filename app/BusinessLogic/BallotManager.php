@@ -5,7 +5,6 @@ namespace App\BusinessLogic;
 use Illuminate\Support\Facades\DB;
 
 use App\DataLayer\Ballot\Ballot;
-// use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\BusinessLogic\Models\Candidate;
 use App\DataLayer\Election\ConsolidatedElection;
 use App\DataLayer\News;
