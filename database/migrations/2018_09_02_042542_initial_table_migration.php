@@ -192,16 +192,16 @@ class InitialTableMigration extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('candidate_news_imports');
-        Schema::dropIfExists('user_ballot_candidates');
-        Schema::dropIfExists('user_news');
-        Schema::dropIfExists('user_ballots');
+        // Schema::dropIfExists('candidate_news_imports');
+        // Schema::dropIfExists('user_ballot_candidates');
+        // Schema::dropIfExists('user_news');
+        // Schema::dropIfExists('user_ballots');
         // Schema::dropIfExists('news');
-        Schema::dropIfExists('candidates');
-        Schema::dropIfExists('consolidated_candidates');
-        Schema::dropIfExists('elections');
-        Schema::dropIfExists('consolidated_elections');
-        Schema::dropIfExists('data_source_priorities');
-        Schema::dropIfExists('data_sources');
+        // Schema::dropIfExists('candidates');
+        // Schema::dropIfExists('consolidated_candidates');
+        // Schema::dropIfExists('elections');
+        // Schema::dropIfExists('consolidated_elections');
+        // Schema::dropIfExists('data_source_priorities');
+        // Schema::dropIfExists('data_sources');
     }
 }

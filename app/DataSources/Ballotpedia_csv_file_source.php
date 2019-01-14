@@ -4,7 +4,7 @@ namespace App\DataSources;
 
 use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Election\ConsolidatedElection;
-use App\DataLayer\Election\Election;
+use App\DataLayer\Election\ElectionFragment;
 use App\DataLayer\DataSource\DataSource;
 
 class Ballotpedia_CSV_File_Source implements IDataSource

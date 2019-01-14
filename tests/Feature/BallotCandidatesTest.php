@@ -5,15 +5,28 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-use App\DataLayer\Election\Election;
+use App\DataLayer\Election\ElectionFragment;
 use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\DataSource\DatasourceDTO;
+
+use App\BusinessLogic\Repositories\ElectionRepository;
+use App\BusinessLogic\ElectionFragmentCombiner;
+use App\BusinessLogic\ElectionLoader;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
 
 class BallotCandidates extends TestCase
 {
   use RefreshDatabase;
 
+  private $election_repository;
+  
+  public function setUp() {
+    parent::setUp();
+    
+    $this->election_repository = new ElectionRepository(new ElectionFragmentCombiner());
+  }
+  
   public function testGetBallotCandidates()
   {
       // Arrange
@@ -27,21 +40,29 @@ class BallotCandidates extends TestCase
         'county' => 'Jefferson',
       ]);
 
-      $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+      $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
 
-      $election = Election::createOrUpdate([
+      $datasource = DatasourceDTO::create($datasource_model);
+
+      $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+        'data_source_id' => $datasource->id,
+        'priority' => 1,
+        'destination_table' => 'elections'
+      ]);
+
+      $election = $this->election_repository->save(ElectionLoader::create([
         'name' => 'Some State Election',
         'state_abbreviation' => $ballot->state_abbreviation,
         'primary_election_date' => '2018-11-6',
         'general_election_date' => '2018-11-7',
         'runoff_election_date' => '2018-11-8',
         'data_source_id' => $datasource->id,
-        'consolidated_election_id' => null,
-      ]);
+        'election_id' => null,
+      ]), $datasource);
 
       $candidate1 = Candidate::createOrUpdate([
         'name' => 'John Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',
@@ -61,7 +82,7 @@ class BallotCandidates extends TestCase
 
       $candidate2 = Candidate::createOrUpdate([
         'name' => 'Terrance Howard',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Democratic',
         'election_status' => 'On The Ballot',
@@ -81,7 +102,7 @@ class BallotCandidates extends TestCase
 
       $candidate3 = Candidate::createOrUpdate([
         'name' => 'Jane Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',
@@ -101,7 +122,7 @@ class BallotCandidates extends TestCase
 
       // Act
       $response = $this->actingAs($user)
-    ->get('/api/users/me/ballots/'.$ballot->id.'/candidates');
+        ->get('/api/users/me/ballots/'.$ballot->id.'/candidates');
 
       // Assert
 
@@ -114,7 +135,7 @@ class BallotCandidates extends TestCase
           'Senate' => [
             [
               'name' => 'John Doe',
-              'election_id' => $election->consolidated_election_id,
+              'election_id' => $election->id,
               'party_affiliation' => 'Libertarian',
               'election_status' => 'On The Ballot',
               'office' => 'Senate',
@@ -135,7 +156,7 @@ class BallotCandidates extends TestCase
           'Senate' => [
             [
               'name' => 'Terrance Howard',
-              'election_id' => $election->consolidated_election_id,
+              'election_id' => $election->id,
               'party_affiliation' => 'Democratic',
               'election_status' => 'On The Ballot',
               'office' => 'Senate',
@@ -156,7 +177,7 @@ class BallotCandidates extends TestCase
           'Representitive' => [
             [
               'name' => 'Jane Doe',
-              'election_id' => $election->consolidated_election_id,
+              'election_id' => $election->id,
               'party_affiliation' => 'Libertarian',
               'election_status' => 'On The Ballot',
               'office' => 'Representitive',
@@ -189,21 +210,29 @@ class BallotCandidates extends TestCase
         'county' => 'Jefferson',
       ]);
 
-      $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+      $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
 
-      $election = Election::createOrUpdate([
+      $datasource = DatasourceDTO::create($datasource_model);
+
+      $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+        'data_source_id' => $datasource->id,
+        'priority' => 1,
+        'destination_table' => 'elections'
+      ]);
+
+      $election = $this->election_repository->save(ElectionLoader::create([
         'name' => 'Some State Election',
         'state_abbreviation' => $ballot->state_abbreviation,
         'primary_election_date' => '2018-11-6',
         'general_election_date' => '2018-11-7',
         'runoff_election_date' => '2018-11-8',
         'data_source_id' => $datasource->id,
-        'consolidated_election_id' => null,
-      ]);
+        'election_id' => null,
+      ]), $datasource);
 
       $candidate1 = Candidate::createOrUpdate([
         'name' => 'John Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',
@@ -223,7 +252,7 @@ class BallotCandidates extends TestCase
 
       $candidate2 = Candidate::createOrUpdate([
         'name' => 'Terrance Howard',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Democratic',
         'election_status' => 'On The Ballot',
@@ -243,7 +272,7 @@ class BallotCandidates extends TestCase
 
       $candidate3 = Candidate::createOrUpdate([
         'name' => 'Jane Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',
@@ -293,21 +322,29 @@ class BallotCandidates extends TestCase
         'county' => 'Jefferson',
       ]);
 
-      $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+      $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
 
-      $election = Election::createOrUpdate([
+      $datasource = DatasourceDTO::create($datasource_model);
+
+      $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+        'data_source_id' => $datasource->id,
+        'priority' => 1,
+        'destination_table' => 'elections'
+      ]);
+
+      $election = $this->election_repository->save(ElectionLoader::create([
         'name' => 'Some State Election',
         'state_abbreviation' => $ballot->state_abbreviation,
         'primary_election_date' => '2018-11-6',
         'general_election_date' => '2018-11-7',
         'runoff_election_date' => '2018-11-8',
         'data_source_id' => $datasource->id,
-        'consolidated_election_id' => null,
-      ]);
+        'election_id' => null,
+      ]), $datasource);
 
       $candidate1 = Candidate::createOrUpdate([
         'name' => 'John Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',
@@ -332,7 +369,7 @@ class BallotCandidates extends TestCase
 
       $candidate2 = Candidate::createOrUpdate([
         'name' => 'Terrance Howard',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Democratic',
         'election_status' => 'On The Ballot',
@@ -380,21 +417,29 @@ class BallotCandidates extends TestCase
         'county' => 'Jefferson',
       ]);
 
-      $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+      $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
 
-      $election = Election::createOrUpdate([
+      $datasource = DatasourceDTO::create($datasource_model);
+
+      $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+        'data_source_id' => $datasource->id,
+        'priority' => 1,
+        'destination_table' => 'elections'
+      ]);
+
+      $election = $this->election_repository->save(ElectionLoader::create([
         'name' => 'Some State Election',
         'state_abbreviation' => $ballot->state_abbreviation,
         'primary_election_date' => '2018-11-6',
         'general_election_date' => '2018-11-7',
         'runoff_election_date' => '2018-11-8',
         'data_source_id' => $datasource->id,
-        'consolidated_election_id' => null,
-      ]);
+        'election_id' => null,
+      ]), $datasource);
 
       $candidate = Candidate::createOrUpdate([
         'name' => 'John Doe',
-        'election_id' => $election->consolidated_election_id,
+        'election_id' => $election->id,
         'consolidated_candidate_id' => null,
         'party_affiliation' => 'Libertarian',
         'election_status' => 'On The Ballot',

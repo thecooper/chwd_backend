@@ -20,6 +20,7 @@ class BallotManager {
   private $ballot_candidate_filter;
   private $candidate_repository;
   private $user_ballot_candidate_repository;
+  private $call_count = 0;
 
   public function __construct(
     BallotElectionManager $ballot_election_manager,
@@ -56,7 +57,7 @@ class BallotManager {
   public function get_candidates_from_ballot(Ballot $ballot) {
     // get all elections and candidates for the ballot passed in
     list($elections, $elections_candidates) = $this->get_ballot_elections_and_candidates($ballot);
-    
+
     // Filter the candidates that are relevant to the user based on the ballot's information. The less specific the ballot location, the less canddiates apply to that ballot.
     $filtered_elections_candidates = $this->ballot_candidate_filter->filter_candidates_by_ballot_location($elections_candidates, $ballot);
 

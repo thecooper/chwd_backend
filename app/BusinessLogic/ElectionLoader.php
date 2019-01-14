@@ -1,6 +1,8 @@
 <?php 
 
-namespace App\DataLayer\Election;
+namespace App\BusinessLogic;
+
+use App\BusinessLogic\Models\Election;
 
 class ElectionLoader {
     public static function load($model, $inputs) {
@@ -13,5 +15,11 @@ class ElectionLoader {
         $model->primary_election_date = $inputs['primary_election_date'];
         $model->general_election_date = $inputs['general_election_date'];
         $model->runoff_election_date = $inputs['runoff_election_date'];
+    }
+
+    public static function create($inputs) {
+      $election = new Election;
+      ElectionLoader::load($election, $inputs);
+      return $election;
     }
 }
