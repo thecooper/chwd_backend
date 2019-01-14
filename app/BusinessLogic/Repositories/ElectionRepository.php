@@ -47,26 +47,24 @@ class ElectionRepository {
 
   function save(Election $entity, DataSource $datasource) {
     // TODO: refactor so that only dataource->id is passed in since that's all that is necessary
-    // Determine existing election id
-    $election_already_exists = $this->exists($entity);
+
+    // Check to see if the entity find in the database already
+    $existing_election = $this->find($entity);
     
     // create new election fragment database model
     $election_fragment_model = new ElectionFragment();
-    // save election fragment to database
-
-    $election_fragment_model->id = $entity->id;
     $election_fragment_model->name = $entity->name;
     $election_fragment_model->state_abbreviation = $entity->state_abbreviation;
     $election_fragment_model->primary_election_date = $entity->primary_election_date;
     $election_fragment_model->general_election_date = $entity->general_election_date;
     $election_fragment_model->runoff_election_date = $entity->runoff_election_date;
     $election_fragment_model->data_source_id = $datasource->id;
-    $election_fragment_model->election_id = null;
+    $election_fragment_model->election_id = $existing_election == null ? null : $existing_election->id;
 
     // save fragment
     $election_fragment_model->save();
 
-    if($election_already_exists) {
+    if($existing_election != null) {
       // combine election fragments
       $fragments = ElectionFragment::where('state_abbreviation', $entity->state_abbreviation)
         ->where('primary_election_date', $entity->primary_election_date)
@@ -83,13 +81,13 @@ class ElectionRepository {
         ->toArray();
         
       $election = $this->fragment_combiner->combine($fragments, $priorities);
+      $election->id = $existing_election->id;
       
-      $election_model = new ElectionModel();
-      ElectionDTO::convert($election, $election_model);
+      ElectionDTO::convert($election, $existing_election);
 
-      $election_model->save();
+      $existing_election->save();
 
-      return $election_model;
+      return $existing_election;
     } else {
       // create new election db model object
       $election_model = new ElectionModel();
@@ -97,6 +95,10 @@ class ElectionRepository {
       ElectionDTO::convert($entity, $election_model);
       // save election db model
       $election_model->save();
+
+      // Save generated election id to election_fragment
+      $election_fragment_model->election_id = $election_model->id;
+      $election_fragment_model->save();
 
       return $election_model;
     }
@@ -106,14 +108,12 @@ class ElectionRepository {
     throw new Exception('Not implemented');
   }
 
-  function exists(Election $entity) {
+  function find(Election $entity) {
     $election_model = ElectionModel::where('state_abbreviation', $entity->state_abbreviation)
       ->where('primary_election_date', $entity->primary_election_date)
       ->where('general_election_date', $entity->general_election_date)
       ->where('runoff_election_date', $entity->runoff_election_date)
       ->first();
-
-    $election_model == null;
 
     return $election_model;
   }
