@@ -9,4 +9,8 @@ class TwitterEntity {
    * @var EntityUrl[]
    */
   public $urls;
+
+  public function __construct() {
+    $this->urls = [];
+  }
 }

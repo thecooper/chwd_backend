@@ -25,18 +25,18 @@ class Tweet {
   public $text;
   
   /**
-   * entities
-   *
-   * @var TwitterEntity[]
-   */
-  public $entities;
-  
-  /**
    * source
    *
    * @var string
    */
   public $source;
+  
+  /**
+   * entities
+   *
+   * @var TwitterEntity[]
+   */
+  public $entities;
   
   /**
    * twitter_user

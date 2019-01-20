@@ -2,7 +2,7 @@
 
 namespace App\BusinessLogic\Models;
 
-class EnitityUrl {
+class EntityUrl {
   /**
    * url
    *
