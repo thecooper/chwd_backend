@@ -112,6 +112,104 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertEquals($parsed_tweet->entities[0]->urls[0]->display_url, 'URL3');
     }
 
+    public function testCanDeserialzeTweetWithNoEntities() {
+      // Arrange
+      $serialized_tweet = '{'.
+        '"id":"4587",'.
+        '"created_at":"1\/19\/2018",'.
+        '"text":"Some placeholder text here",'.
+        '"source":"example source",'.
+        '"entities":[],'.
+        '"twitter_user":{'.
+          '"id": 4321,'.
+          '"name":"Benjamin Franklin",'.
+          '"screen_name":"bfranklin",'.
+          '"location":"Global",'.
+          '"description":"A very good description lies here",'.
+          '"url":"https:\/\/bit.ly\/1G8G8efz1",'.
+          '"profile_image_url":"http:\/\/imgur.com\/somelink",'.
+          '"profile_image_url_https":"https:\/\/imgur.com\/somelink"'.
+        '}'.
+      '}';
+
+      $serializer = new TweetJsonSerializer();
+
+      // Act
+      $parsed_tweet = $serializer->parse($serialized_tweet);
+
+      // Assert
+      $this->assertNotEmpty($parsed_tweet);
+      $this->assertEquals($parsed_tweet->id, 4587);
+      $this->assertEquals($parsed_tweet->created_at, '1/19/2018');
+      $this->assertEquals($parsed_tweet->text, 'Some placeholder text here');
+      $this->assertEquals($parsed_tweet->source, 'example source');
+      
+      $this->assertNotEmpty($parsed_tweet->twitter_user);
+      $this->assertEquals($parsed_tweet->twitter_user->id, 4321);
+      $this->assertEquals($parsed_tweet->twitter_user->name, 'Benjamin Franklin');
+      $this->assertEquals($parsed_tweet->twitter_user->screen_name, 'bfranklin');
+      $this->assertEquals($parsed_tweet->twitter_user->location, 'Global');
+      $this->assertEquals($parsed_tweet->twitter_user->description, 'A very good description lies here');
+      $this->assertEquals($parsed_tweet->twitter_user->url, 'https://bit.ly/1G8G8efz1');
+      $this->assertEquals($parsed_tweet->twitter_user->profile_image_url, 'http://imgur.com/somelink');
+      $this->assertEquals($parsed_tweet->twitter_user->profile_image_url_https, 'https://imgur.com/somelink');
+
+      $this->assertEmpty($parsed_tweet->entities);
+    }
+
+    public function testCanDeserialzeTweetWithNoUrls() {
+      // Arrange
+      $serialized_tweet = '{'.
+        '"id":"4587",'.
+        '"created_at":"1\/19\/2018",'.
+        '"text":"Some placeholder text here",'.
+        '"source":"example source",'.
+        '"entities":['.
+          '{'.
+            '"urls":[],'.
+            '"somethingElse":[{"property":"abcd"}]'.
+          '}'.
+        '],'.
+        '"twitter_user":{'.
+          '"id": 4321,'.
+          '"name":"Benjamin Franklin",'.
+          '"screen_name":"bfranklin",'.
+          '"location":"Global",'.
+          '"description":"A very good description lies here",'.
+          '"url":"https:\/\/bit.ly\/1G8G8efz1",'.
+          '"profile_image_url":"http:\/\/imgur.com\/somelink",'.
+          '"profile_image_url_https":"https:\/\/imgur.com\/somelink"'.
+        '}'.
+      '}';
+
+      $serializer = new TweetJsonSerializer();
+
+      // Act
+      $parsed_tweet = $serializer->parse($serialized_tweet);
+
+      // Assert
+      $this->assertNotEmpty($parsed_tweet);
+      $this->assertEquals($parsed_tweet->id, 4587);
+      $this->assertEquals($parsed_tweet->created_at, '1/19/2018');
+      $this->assertEquals($parsed_tweet->text, 'Some placeholder text here');
+      $this->assertEquals($parsed_tweet->source, 'example source');
+      
+      $this->assertNotEmpty($parsed_tweet->twitter_user);
+      $this->assertEquals($parsed_tweet->twitter_user->id, 4321);
+      $this->assertEquals($parsed_tweet->twitter_user->name, 'Benjamin Franklin');
+      $this->assertEquals($parsed_tweet->twitter_user->screen_name, 'bfranklin');
+      $this->assertEquals($parsed_tweet->twitter_user->location, 'Global');
+      $this->assertEquals($parsed_tweet->twitter_user->description, 'A very good description lies here');
+      $this->assertEquals($parsed_tweet->twitter_user->url, 'https://bit.ly/1G8G8efz1');
+      $this->assertEquals($parsed_tweet->twitter_user->profile_image_url, 'http://imgur.com/somelink');
+      $this->assertEquals($parsed_tweet->twitter_user->profile_image_url_https, 'https://imgur.com/somelink');
+
+      $this->assertNotEmpty($parsed_tweet->entities);
+      $this->assertEquals(count($parsed_tweet->entities), 1);
+      $this->assertEmpty($parsed_tweet->entities[0]->urls);
+    }
+
+
     public function testSerializeTweetRoundTrip() {
       // Arrange
       $tweet = $this->generate_tweet();
