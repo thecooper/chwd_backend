@@ -23,8 +23,12 @@ use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\Jobs\SelectElectionToProcessNews;
 use App\DataSources\TwitterDataSource;
 use App\BusinessLogic\Serializer\TweetJsonSerializer;
-
+use App\BusinessLogic\Repositories\TweetRepository;
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
+
+Route::get('repo_test', function(TweetRepository $repo) {
+  return response()->json($repo->get_tweets_by_handles(['AOC', 'BetoORourke']), 200);
+});
 
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index');
