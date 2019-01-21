@@ -2,6 +2,9 @@
 
 namespace App\BusinessLogic\Models;
 
+use App\BusinessLogic\Models\TwitterEntity;
+use App\BusinessLogic\Models\TwitterUser;
+
 class Tweet {
   /**
    * id
@@ -34,7 +37,7 @@ class Tweet {
   /**
    * entities
    *
-   * @var TwitterEntity[]
+   * @var TwitterEntity
    */
   public $entities;
   
@@ -44,4 +47,9 @@ class Tweet {
    * @var TwitterUser
    */
   public $twitter_user;
+
+  public function __construct() {
+    $this->entities = new TwitterEntity();
+    $this->twitter_user = new TwitterUser();
+  }
 }
