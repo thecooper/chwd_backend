@@ -12,7 +12,7 @@ use App\BusinessLogic\Models\Tweet;
  */
 interface ITweetSerializer {
   /**
-   * to_string
+   * serialize
    *
    * @param Tweet $tweet
    * @return string
