@@ -21,12 +21,6 @@ use Exception;
 class TwitterDataSource {
   private $twitter_oauth;
 
-  // private $twitter_api_key;
-  // private $twitter_api_secret;
-  // private $tweet_serializer;
-  // private $access_token;
-  // private $access_token_secret;
-
   private $bearer_token = '';
 
   public function __construct() {
@@ -50,12 +44,6 @@ class TwitterDataSource {
     if($access_token_secret === null) {
       throw new Exception('Instantiation of TwitterDataSource failed: need to provide TWITTER_ACCESS_TOKEN_SECRET in environment configuration');
     }
-    
-    // if($tweet_serializer == null) {
-    //   $this->tweet_serializer = new TweetJsonSerializer();
-    // } else {
-    //   $this->tweet_serializer = $tweet_serializer;
-    // }
 
     $this->twitter_oauth = new TwitterOAuth($twitter_api_key, $twitter_api_secret, $access_token, $access_token_secret);
   }

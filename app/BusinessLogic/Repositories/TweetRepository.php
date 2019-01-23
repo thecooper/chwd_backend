@@ -35,8 +35,6 @@ class TweetRepository {
       $this->cache_tweets($fresh_tweets);
     }
 
-    dd($uncached_handles);
-
     return $tweets;
   }
 

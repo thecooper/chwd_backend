@@ -25,5 +25,5 @@ interface ITweetSerializer {
    * @param string $value
    * @return Tweet
    */
-  function parse($value);
+  function parse(string $value);
 }

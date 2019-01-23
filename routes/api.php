@@ -22,7 +22,6 @@ use App\DataLayer\Election\ConsolidatedElection;
 use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\Jobs\SelectElectionToProcessNews;
 use App\DataSources\TwitterDataSource;
-use App\BusinessLogic\Serializer\TweetJsonSerializer;
 use App\BusinessLogic\Repositories\TweetRepository;
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
