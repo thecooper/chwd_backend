@@ -75,9 +75,15 @@ Route::middleware('auth.basic')->group(function () {
             return response()->json($news_articles, 200);
         })->middleware('ballot-valid-user:ballot');
 
-        Route::get('ballots/{ballot}/tweets', function(Request $request, Ballot $ballot) {
-            return response()->json([], 200);
-        })->middleware('ballot-valid-user:ballot');
+        Route::get('ballots/{ballot}/tweets', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
+          $news_articles = collect($ballot_manager
+            ->get_tweets_from_ballot($ballot))
+            ->sortByDesc('created_at')
+            ->flatten()
+            ->take(100);
+
+          return response()->json($news_articles, 200);
+      })->middleware('ballot-valid-user:ballot');
     });
 
     // Route::resource('elections', 'ElectionsController')->only('index', 'show');

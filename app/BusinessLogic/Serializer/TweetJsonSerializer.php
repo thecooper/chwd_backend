@@ -8,6 +8,12 @@ use App\BusinessLogic\Models\TwitterEntity;
 use App\BusinessLogic\Models\EntityUrl;
 
 class TweetJsonSerializer implements ITweetSerializer {
+  /**
+   * serialize
+   *
+   * @param Tweet $tweet
+   * @return string
+   */
   public function serialize(Tweet $tweet) {
     return json_encode($tweet);
   }

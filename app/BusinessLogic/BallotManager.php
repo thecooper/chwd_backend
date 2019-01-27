@@ -10,6 +10,7 @@ use App\DataLayer\Election\ConsolidatedElection;
 use App\DataLayer\News;
 use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
+use App\BusinessLogic\Repositories\TweetRepository;
 
 class BallotManager {
 
@@ -19,6 +20,8 @@ class BallotManager {
   private $ballot_candidate_filter;
   private $candidate_repository;
   private $user_ballot_candidate_repository;
+  private $tweet_repository;
+  
   private $call_count = 0;
 
   public function __construct(
@@ -27,7 +30,8 @@ class BallotManager {
     BallotNewsManager $ballot_news_manager,
     BallotCandidateFilter $ballot_candidate_filter,
     CandidateRepository $candidate_repository,
-    UserBallotCandidateRepository $user_ballot_candidate_repository
+    UserBallotCandidateRepository $user_ballot_candidate_repository,
+    TweetRepository $tweet_repository
   ) {
     $this->ballot_election_manager = $ballot_election_manager;
     $this->ballot_candidate_manager = $ballot_candidate_manager;
@@ -35,6 +39,7 @@ class BallotManager {
     $this->ballot_candidate_filter = $ballot_candidate_filter;
     $this->candidate_repository = $candidate_repository;
     $this->user_ballot_candidate_repository = $user_ballot_candidate_repository;
+    $this->tweet_repository = $tweet_repository;
   }
   
   public function get_elections_from_ballot(Ballot $ballot) {
@@ -82,6 +87,20 @@ class BallotManager {
     return $this->ballot_news_manager->get_news_from_ballot($candidates);
   }
 
+  public function get_tweets_from_ballot(Ballot $ballot) {
+    $candidates = $this->get_candidates_from_ballot($ballot);
+
+    $candidates_twitter_handles = collect($candidates)->pluck('twitter_handle')
+      ->filter(function($value, $key) {
+        return $value !== '';
+      })
+      ->toArray();
+
+    $tweets = $this->tweet_repository->get_tweets_by_handles($candidates_twitter_handles);
+
+    return $tweets;
+  }
+  
   private function get_ballot_elections_and_candidates(Ballot $ballot) {
     $elections = $this->ballot_election_manager->get_elections_by_state($ballot->state_abbreviation);
     $elections_candidates = $this->ballot_candidate_manager->get_candidates_from_elections($elections);
