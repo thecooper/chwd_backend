@@ -48,27 +48,25 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertContains('"profile_image_url_https":"https:\/\/imgur.com\/somelink"', $result);
       
       // Assert entities properties serialized
-      $this->assertContains('"entities":[{"urls":[{"url":"url1","expanded_url":"url2","display_url":"url3"}]}]', $result);
+      $this->assertContains('"entities":{"urls":[{"url":"url1","expanded_url":"url2","display_url":"url3"}]}', $result);
     }
 
-    public function testCanDeserialzeTweet() {
+    public function testCanDeserializeTweet() {
       // Arrange
       $serialized_tweet = '{'.
         '"id":"4587",'.
         '"created_at":"1\/19\/2018",'.
         '"text":"Some placeholder text here",'.
         '"source":"example source",'.
-        '"entities":['.
-          '{'.
-            '"urls":['.
-              '{'.
-                '"url":"URL1",'.
-                '"expanded_url":"URL2",'.
-                '"display_url":"URL3"'.
-              '}'.
-            ']'.
-          '}'.
-        '],'.
+        '"entities":{'.
+          '"urls":['.
+            '{'.
+              '"url":"URL1",'.
+              '"expanded_url":"URL2",'.
+              '"display_url":"URL3"'.
+            '}'.
+          ']'.
+        '},'.
         '"twitter_user":{'.
           '"id": 4321,'.
           '"name":"Benjamin Franklin",'.
@@ -104,12 +102,11 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertEquals($parsed_tweet->twitter_user->profile_image_url_https, 'https://imgur.com/somelink');
 
       $this->assertNotEmpty($parsed_tweet->entities);
-      $this->assertEquals(count($parsed_tweet->entities), 1);
-      $this->assertEquals(count($parsed_tweet->entities[0]->urls), 1);
+      $this->assertEquals(count($parsed_tweet->entities->urls), 1);
 
-      $this->assertEquals($parsed_tweet->entities[0]->urls[0]->url, 'URL1');
-      $this->assertEquals($parsed_tweet->entities[0]->urls[0]->expanded_url, 'URL2');
-      $this->assertEquals($parsed_tweet->entities[0]->urls[0]->display_url, 'URL3');
+      $this->assertEquals($parsed_tweet->entities->urls[0]->url, 'URL1');
+      $this->assertEquals($parsed_tweet->entities->urls[0]->expanded_url, 'URL2');
+      $this->assertEquals($parsed_tweet->entities->urls[0]->display_url, 'URL3');
     }
 
     public function testCanDeserialzeTweetWithNoEntities() {
@@ -154,22 +151,20 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertEquals($parsed_tweet->twitter_user->profile_image_url, 'http://imgur.com/somelink');
       $this->assertEquals($parsed_tweet->twitter_user->profile_image_url_https, 'https://imgur.com/somelink');
 
-      $this->assertEmpty($parsed_tweet->entities);
+      $this->assertEmpty($parsed_tweet->entities->urls);
     }
 
-    public function testCanDeserialzeTweetWithNoUrls() {
+    public function testCanDeserializeTweetWithNoUrls() {
       // Arrange
       $serialized_tweet = '{'.
         '"id":"4587",'.
         '"created_at":"1\/19\/2018",'.
         '"text":"Some placeholder text here",'.
         '"source":"example source",'.
-        '"entities":['.
-          '{'.
-            '"urls":[],'.
-            '"somethingElse":[{"property":"abcd"}]'.
-          '}'.
-        '],'.
+        '"entities":{'.
+          '"urls":[],'.
+          '"somethingElse":[{"property":"abcd"}]'.
+        '},'.
         '"twitter_user":{'.
           '"id": 4321,'.
           '"name":"Benjamin Franklin",'.
@@ -206,7 +201,7 @@ class TweetJsonSerializerTest extends TestCase
 
       $this->assertNotEmpty($parsed_tweet->entities);
       $this->assertEquals(count($parsed_tweet->entities), 1);
-      $this->assertEmpty($parsed_tweet->entities[0]->urls);
+      $this->assertEmpty($parsed_tweet->entities->urls);
     }
 
 
@@ -216,7 +211,9 @@ class TweetJsonSerializerTest extends TestCase
       $serializer = new TweetJsonSerializer();
       
       // Act
-      $result = $serializer->parse($serializer->serialize($tweet));
+      $serialized_tweet = $serializer->serialize($tweet);
+
+      $result = $serializer->parse($serialized_tweet);
 
       // Assert
       // Assert base properties serialized
@@ -238,11 +235,11 @@ class TweetJsonSerializerTest extends TestCase
       
       // Assert entities properties serialized
       $this->assertEquals(count($result->entities), 1);
-      $this->assertEquals(count($result->entities[0]->urls), 1);
+      $this->assertEquals(count($result->entities->urls), 1);
 
-      $this->assertEquals($result->entities[0]->urls[0]->url, $tweet->entities[0]->urls[0]->url);
-      $this->assertEquals($result->entities[0]->urls[0]->expanded_url, $tweet->entities[0]->urls[0]->expanded_url);
-      $this->assertEquals($result->entities[0]->urls[0]->display_url, $tweet->entities[0]->urls[0]->display_url);
+      $this->assertEquals($result->entities->urls[0]->url, $tweet->entities->urls[0]->url);
+      $this->assertEquals($result->entities->urls[0]->expanded_url, $tweet->entities->urls[0]->expanded_url);
+      $this->assertEquals($result->entities->urls[0]->display_url, $tweet->entities->urls[0]->display_url);
     }
 
     private function generate_tweet() {
@@ -268,7 +265,7 @@ class TweetJsonSerializerTest extends TestCase
       $tweet->created_at = '1/18/1988';
       $tweet->text = 'Some random tweet text';
       $tweet->source = 'source text here';
-      $tweet->entities = [$twitter_entity];
+      $tweet->entities = $twitter_entity;
       $tweet->twitter_user = $twitter_user;
 
       return $tweet;

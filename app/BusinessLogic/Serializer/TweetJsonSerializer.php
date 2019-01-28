@@ -37,11 +37,10 @@ class TweetJsonSerializer implements ITweetSerializer {
     $tweet->twitter_user->profile_image_url = $decoded_json['twitter_user']['profile_image_url'];
     $tweet->twitter_user->profile_image_url_https = $decoded_json['twitter_user']['profile_image_url_https'];
 
-    $tweet->entities = [];
+    $tweet->entities = new TwitterEntity();
 
     if(isset($decoded_json['entities']['urls'])) {
       $urls = $decoded_json['entities']['urls'];
-      $twitter_entity = new TwitterEntity();
 
       foreach($urls as $url) {
         $entity_url = new EntityUrl();
@@ -50,10 +49,8 @@ class TweetJsonSerializer implements ITweetSerializer {
         $entity_url->expanded_url = $url['expanded_url'];
         $entity_url->display_url = $url['display_url'];
 
-        array_push($twitter_entity->urls, $entity_url);
+        array_push($tweet->entities->urls, $entity_url);
       }
-
-      array_push($tweet->entities, $twitter_entity);
     }
 
     return $tweet;

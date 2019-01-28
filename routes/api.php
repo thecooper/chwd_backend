@@ -88,13 +88,9 @@ Route::middleware('auth.basic')->group(function () {
           return response()->json($news_articles, 200);
       })->middleware('ballot-valid-user:ballot');
     });
-
-    // Route::resource('elections', 'ElectionsController')->only('index', 'show');
-    // Route::get('elections/{id}/races', 'ElectionsController@races');
-    // Route::get('elections/{id}/candidates', 'ElectionsController@election_candidates');
-
-});
-
+  });
+  
+Route::resource('elections', 'ElectionsController')->only('index', 'show');
 Route::resource('candidates', 'CandidatesController')->only('index', 'show');
 
 Route::get('candidates/{candidate_id}/tweets', function(Request $request, $candidate_id, CandidateRepository $candidate_repository, TweetRepository $tweet_repository) {
