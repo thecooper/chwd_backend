@@ -39,11 +39,13 @@ class TweetJsonSerializer implements ITweetSerializer {
 
     $tweet->entities = [];
 
-    foreach($decoded_json['entities'] as $entity) {
+    if(isset($decoded_json['entities']['urls'])) {
+      $urls = $decoded_json['entities']['urls'];
       $twitter_entity = new TwitterEntity();
 
-      foreach($entity['urls'] as $url) {
+      foreach($urls as $url) {
         $entity_url = new EntityUrl();
+
         $entity_url->url = $url['url'];
         $entity_url->expanded_url = $url['expanded_url'];
         $entity_url->display_url = $url['display_url'];

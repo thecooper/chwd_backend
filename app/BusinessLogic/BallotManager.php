@@ -92,7 +92,7 @@ class BallotManager {
 
     $candidates_twitter_handles = collect($candidates)->pluck('twitter_handle')
       ->filter(function($value, $key) {
-        return $value !== '';
+        return $value !== '' && $value !== null;
       })
       ->toArray();
 

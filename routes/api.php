@@ -13,16 +13,19 @@
 
 use Illuminate\Http\Request;
 
-use App\News;
-use App\DataLayer\Ballot\Ballot;
-use App\DataSources\NewsAPIDataSource;
-use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\BusinessLogic\BallotManager;
-use App\DataLayer\Election\ConsolidatedElection;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
-use App\Jobs\SelectElectionToProcessNews;
-use App\DataSources\TwitterDataSource;
 use App\BusinessLogic\Repositories\TweetRepository;
+use App\BusinessLogic\Repositories\CandidateRepository;
+
+use App\DataLayer\Ballot\Ballot;
+use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Election\ConsolidatedElection;
+
+use App\DataSources\Ballotpedia_CSV_File_Source;
+use App\DataSources\NewsAPIDataSource;
+use App\DataSources\TwitterDataSource;
+use App\Jobs\SelectElectionToProcessNews;
+use App\News;
 // Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
 Route::get('repo_test', function(TweetRepository $repo) {
@@ -93,6 +96,14 @@ Route::middleware('auth.basic')->group(function () {
 });
 
 Route::resource('candidates', 'CandidatesController')->only('index', 'show');
+
+Route::get('candidates/{candidate_id}/tweets', function(Request $request, $candidate_id, CandidateRepository $candidate_repository, TweetRepository $tweet_repository) {
+  $candidate = $candidate_repository->get($candidate_id);
+
+  $tweets = $tweet_repository->get_tweets_by_handles([$candidate->twitter_handle]);
+
+  return response()->json($tweets, 200);
+});
 
 // User Registration
 Route::post('users', 'UsersController@store');

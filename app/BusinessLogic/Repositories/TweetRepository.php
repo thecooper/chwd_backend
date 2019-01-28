@@ -20,12 +20,22 @@ class TweetRepository {
   public function get_tweets_by_handles(array $handles) {
     $tweets = [];
     $uncached_handles = [];
-    
+    $need_to_call_api = false;
+
     foreach($handles as $handle) {
+      if($handle === null || $handle === '') {
+        continue;
+      }
+
+      $handle = strtolower($handle);
+
       $cache_key = 'twitter_handle_' . $handle;
-      
-      if(!Cache::has($cache_key)) {
+
+      $cache_value_exists = Cache::has($cache_key);
+
+      if(!$cache_value_exists) {
         array_push($uncached_handles, $handle);
+        $need_to_call_api = true;
       } else {
         $serialized_tweets = Cache::get($cache_key);
         $deserialized_tweets = explode('&|', $serialized_tweets);
@@ -37,11 +47,13 @@ class TweetRepository {
       }
     }
 
-    $fresh_tweets = $this->twitter_data_source->get_tweets_by_handles($uncached_handles);
-
-    if(count($fresh_tweets) > 0) {
-      $tweets = array_merge($tweets, $fresh_tweets);
-      $this->cache_tweets($fresh_tweets);
+    if(count($uncached_handles) > 0) {
+      $fresh_tweets = $this->twitter_data_source->get_tweets_by_handles($uncached_handles);
+  
+      if(count($fresh_tweets) > 0) {
+        $tweets = array_merge($tweets, $fresh_tweets);
+        $this->cache_tweets($fresh_tweets);
+      }
     }
 
     return $tweets;
@@ -60,6 +72,8 @@ class TweetRepository {
     
     
     foreach($tweets_grouped_by_screen_name as $screen_name => $tweets) {
+      $screen_name = strtolower($screen_name);
+
       $serialized_tweets = [];
       
       foreach($tweets as $tweet) {
@@ -70,8 +84,7 @@ class TweetRepository {
       $serialized_tweets_string = implode('&|', $serialized_tweets);
 
       $cache_key = 'twitter_handle_' . $screen_name;
-      Cache::put($cache_key, $this->serializer->serialize($serialized_tweets_string), 1440);
-    }
-    
+      Cache::put($cache_key, $serialized_tweets_string, 1440);
+    }   
   }
 }
