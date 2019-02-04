@@ -47,8 +47,11 @@ class TweetRepository {
       }
     }
 
-    if(count($uncached_handles) > 0) {
-      $fresh_tweets = $this->twitter_data_source->get_tweets_by_handles($uncached_handles);
+    while(count($uncached_handles) > 0) {
+      $batched_handles = array_slice($uncached_handles, 0, 100);
+      $uncached_handles = array_slice($uncached_handles, 100);
+
+      $fresh_tweets = $this->twitter_data_source->get_tweets_by_handles($batched_handles);
   
       if(count($fresh_tweets) > 0) {
         $tweets = array_merge($tweets, $fresh_tweets);
