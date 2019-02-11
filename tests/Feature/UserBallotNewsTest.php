@@ -19,34 +19,37 @@ class BallotNews extends TestCase
   use RefreshDatabase;
 
   private $election_repository;
-  
+
+  private $user;
+  private $datasource;
+
   public function setUp() {
     parent::setUp();
     
     $this->election_repository = new ElectionRepository(new ElectionFragmentCombiner());
+
+    $this->user = factory(\App\DataLayer\User::class)->create();
+
+    $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+
+    $this->datasource = DatasourceDTO::create($datasource_model);
+
+    $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+      'data_source_id' => $this->datasource->id,
+      'priority' => 1,
+      'destination_table' => 'elections'
+    ]);
   }
 
   public function testGetBallotNews()
   {
     // Arrange
-    $user = factory(\App\DataLayer\User::class)->create();
-    
     $ballot = factory(\App\DataLayer\Ballot\Ballot::class)->create([
-      'user_id' => $user->id,
+      'user_id' => $this->user->id,
       'congressional_district' => 1,
       'state_legislative_district' => 13,
       'state_house_district' => 7,
       'county' => 'Jefferson'
-    ]);
-
-    $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
-
-    $datasource = DatasourceDTO::create($datasource_model);
-
-    $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
-      'data_source_id' => $datasource->id,
-      'priority' => 1,
-      'destination_table' => 'elections'
     ]);
 
     $election = $this->election_repository->save(ElectionLoader::create([
@@ -55,62 +58,41 @@ class BallotNews extends TestCase
       'primary_election_date'=>'2018-11-6',
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
-      'data_source_id'=>$datasource->id,
       'election_id'=>null
-    ]), $datasource);
+    ]), $this->datasource);
 
-    $candidate = Candidate::createOrUpdate([
-      'name' => 'John Doe',
+    $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,
-      'consolidated_candidate_id' => null,
-      'party_affiliation' => 'Libertarian',
-      'election_status' => 'On The Ballot',
       'office' => 'Senate',
       'office_level' => 'Federal',
       'is_incumbent' => 1,
       'district_type' => 'Congress',
       'district' => 'Washington DC',
-      'district_identifier' => $ballot->congressional_district,
-      'ballotpedia_url' => 'https://www.google.com',
-      'website_url' => 'https://www.yahoo.com',
-      'donate_url' => 'https://www.redcross.com',
-      'facebook_profile' => 'https://www.facebook.com',
-      'twitter_handle' => 'someTwitterHandle',
-      'data_source_id' => $datasource->id
+      'district_identifier' => $ballot->congressional_district
     ]);
 
-    $candidate2 = Candidate::createOrUpdate([
-      'name' => 'Terrance Howard',
+    $candidate2 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,
-      'consolidated_candidate_id' => null,
-      'party_affiliation' => 'Democratic',
-      'election_status' => 'On The Ballot',
       'office' => 'Senate',
       'office_level' => 'State',
       'is_incumbent' => 1,
       'district_type' => 'State Legislative (Upper)',
       'district' => 'Washington DC',
-      'district_identifier' => $ballot->state_legislative_district,
-      'ballotpedia_url' => 'https://www.google.com',
-      'website_url' => 'https://www.yahoo.com',
-      'donate_url' => 'https://www.redcross.com',
-      'facebook_profile' => 'https://www.facebook.com',
-      'twitter_handle' => 'someTwitterHandle',
-      'data_source_id' => $datasource->id
+      'district_identifier' => $ballot->state_legislative_district
     ]);
 
     $news1 = factory(\App\DataLayer\News::class)->create([
-      'candidate_id' => $candidate->consolidated_candidate_id,
+      'candidate_id' => $candidate->id,
       'publish_date' => '2018-10-12',
     ]);
 
     $news2 = factory(\App\DataLayer\News::class)->create([
-      'candidate_id' => $candidate2->consolidated_candidate_id,
+      'candidate_id' => $candidate2->id,
       'publish_date' => '2018-6-1',
     ]);
 
     // Act
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($this->user)
       ->get('/api/users/me/ballots/'.$ballot->id.'/news');
 
     // Assert
@@ -138,34 +120,20 @@ class BallotNews extends TestCase
   public function testGetBallotNewsWithMultipleBallots()
   {
     // Arrange
-    $user = factory(\App\DataLayer\User::class)->create();
-    
     $ballot = factory(\App\DataLayer\Ballot\Ballot::class)->create([
-      'user_id' => $user->id,
+      'user_id' => $this->user->id,
       'congressional_district' => 1,
       'state_legislative_district' => 13,
       'state_house_district' => 7,
       'county' => 'Jefferson',
-      'state_abbreviation' => 'DE'
     ]);
 
     $ballot2 = factory(\App\DataLayer\Ballot\Ballot::class)->create([
-      'user_id' => $user->id,
+      'user_id' => $this->user->id,
       'congressional_district' => 4,
       'state_legislative_district' => 12,
       'state_house_district' => 8,
       'county' => 'Jefferson',
-      'state_abbreviation' => 'VA'
-    ]);
-
-    $datasource_model = factory(\App\DataLayer\DataSource\DataSource::class)->create();
-
-    $datasource = DatasourceDTO::create($datasource_model);
-
-    $datasource_priority = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
-      'data_source_id' => $datasource->id,
-      'priority' => 1,
-      'destination_table' => 'elections'
     ]);
 
     $election = $this->election_repository->save(ElectionLoader::create([
@@ -174,9 +142,7 @@ class BallotNews extends TestCase
       'primary_election_date'=>'2018-11-6',
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
-      'data_source_id'=>$datasource->id,
-      'election_id'=>null
-    ]), $datasource);
+    ]), $this->datasource);
 
     $election2 = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some Other State Election',
@@ -184,65 +150,43 @@ class BallotNews extends TestCase
       'primary_election_date'=>'2018-11-6',
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
-      'data_source_id'=>$datasource->id,
-      'election_id'=>null
-    ]), $datasource);
+    ]), $this->datasource);
 
-    $candidate = Candidate::createOrUpdate([
-      'name' => 'John Doe',
+    $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,
-      'consolidated_candidate_id' => null,
-      'party_affiliation' => 'Libertarian',
-      'election_status' => 'On The Ballot',
       'office' => 'Senate',
       'office_level' => 'Federal',
       'is_incumbent' => 1,
       'district_type' => 'Congress',
       'district' => 'Washington DC',
-      'district_identifier' => $ballot->congressional_district,
-      'ballotpedia_url' => 'https://www.google.com',
-      'website_url' => 'https://www.yahoo.com',
-      'donate_url' => 'https://www.redcross.com',
-      'facebook_profile' => 'https://www.facebook.com',
-      'twitter_handle' => 'someTwitterHandle',
-      'data_source_id' => $datasource->id
+      'district_identifier' => $ballot->congressional_district
     ]);
 
-    $candidate2 = Candidate::createOrUpdate([
-      'name' => 'King James III',
+    $candidate2 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election2->id,
-      'consolidated_candidate_id' => null,
-      'party_affiliation' => 'Democratic',
-      'election_status' => 'On The Ballot',
       'office' => 'Senate',
       'office_level' => 'State',
       'is_incumbent' => 1,
       'district_type' => 'State Legislative (Upper)',
       'district' => 'Washington DC',
       'district_identifier' => $ballot2->state_legislative_district,
-      'ballotpedia_url' => 'https://www.google.com',
-      'website_url' => 'https://www.yahoo.com',
-      'donate_url' => 'https://www.redcross.com',
-      'facebook_profile' => 'https://www.facebook.com',
-      'twitter_handle' => 'someTwitterHandle',
-      'data_source_id' => $datasource->id
     ]);
 
     $news1 = factory(\App\DataLayer\News::class)->create([
-      'candidate_id' => $candidate->consolidated_candidate_id,
+      'candidate_id' => $candidate->id,
       'publish_date' => '2018-10-12',
     ]);
 
     $news2 = factory(\App\DataLayer\News::class)->create([
-      'candidate_id' => $candidate2->consolidated_candidate_id,
+      'candidate_id' => $candidate2->id,
       'publish_date' => '2018-6-1',
     ]);
 
     // Act
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($this->user)
       ->get('/api/users/me/ballots/'.$ballot->id.'/news');
 
-    $response2 = $this->actingAs($user)
+    $response2 = $this->actingAs($this->user)
       ->get('/api/users/me/ballots/'.$ballot2->id.'/news');
     
     // Assert
