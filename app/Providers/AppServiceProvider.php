@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
-use App\DataSources\Ballotpedia_CSV_File_Source;
+use App\DataSources\Ballotpedia\Ballotpedia_CSV_File_Source;
 use App\DataLayer\EloquentModelTransferManager;
 use App\DataLayer\Election\ElectionConsolidator;
 use App\DataLayer\Candidate\CandidateConsolidator;

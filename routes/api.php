@@ -21,7 +21,6 @@ use App\DataLayer\Ballot\Ballot;
 use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Election\ConsolidatedElection;
 
-use App\DataSources\Ballotpedia_CSV_File_Source;
 use App\DataSources\NewsAPIDataSource;
 use App\DataSources\TwitterDataSource;
 use App\Jobs\SelectElectionToProcessNews;

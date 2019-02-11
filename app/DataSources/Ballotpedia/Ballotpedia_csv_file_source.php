@@ -1,14 +1,23 @@
 <?php
 
-namespace App\DataSources;
+namespace App\DataSources\Ballotpedia;
 
-use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Election\ElectionFragment;
 use App\DataLayer\DataSource\DataSource;
 use App\DataLayer\DataSource\DatasourceDTO;
 
+use App\DataSources\IDataSource;
+use App\DataSources\DataSourceConfig;
+use App\DataSources\FieldMapper;
+use App\DataSources\FileDataSourceConfig;
+use App\DataSources\DataSourceImportResult;
+use App\DataSources\DirectoryScanner;
+
+use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\Repositories\ElectionRepository;
+use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\ElectionLoader;
+use App\BusinessLogic\CandidateLoader;
 
 class Ballotpedia_CSV_File_Source implements IDataSource
 {
@@ -35,76 +44,16 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         'twitter_handle' => 19
     ];
 
-    private static $state_lookup = [
-        "AL" => "Alabama",
-        "AK" => "Alaska",
-        "AS" => "American Samoa",
-        "AZ" => "Arizona",
-        "AR" => "Arkansas",
-        "CA" => "California",
-        "CO" => "Colorado",
-        "CT" => "Connecticut",
-        "DE" => "Delaware",
-        "DC" => "District of Columbia",
-        "FM" => "Federated States of Micronesia",
-        "FL" => "Florida",
-        "GA" => "Georgia",
-        "GU" => "Guam",
-        "HI" => "Hawaii",
-        "ID" => "Idaho",
-        "IL" => "Illinois",
-        "IN" => "Indiana",
-        "IA" => "Iowa",
-        "KS" => "Kansas",
-        "KY" => "Kentucky",
-        "LA" => "Louisiana",
-        "ME" => "Maine",
-        "MH" => "Marshall Islands",
-        "MD" => "Maryland",
-        "MA" => "Massachusetts",
-        "MI" => "Michigan",
-        "MN" => "Minnesota",
-        "MS" => "Mississippi",
-        "MO" => "Missouri",
-        "MT" => "Montana",
-        "NE" => "Nebraska",
-        "NV" => "Nevada",
-        "NH" => "New Hampshire",
-        "NJ" => "New Jersey",
-        "NM" => "New Mexico",
-        "NY" => "New York",
-        "NC" => "North Carolina",
-        "ND" => "North Dakota",
-        "MP" => "Northern Mariana Islands",
-        "OH" => "Ohio",
-        "OK" => "Oklahoma",
-        "OR" => "Oregon",
-        "PW" => "Palau",
-        "PA" => "Pennsylvania",
-        "PR" => "Puerto Rico",
-        "RI" => "Rhode Island",
-        "SC" => "South Carolina",
-        "SD" => "South Dakota",
-        "TN" => "Tennessee",
-        "TX" => "Texas",
-        "UT" => "Utah",
-        "VT" => "Vermont",
-        "VI" => "Virgin Islands",
-        "VA" => "Virginia",
-        "WA" => "Washington",
-        "WV" => "West Virginia",
-        "WI" => "Wisconsin",
-        "WY" => "Wyoming"
-    ];
-
     private $field_mapper;
     private $data_source_id;
     private $election_repository;
+    private $candidate_repository;
 
-    public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository)
+    public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository, CandidateRepository $candidate_repository)
     {
         $this->field_mapper = $field_mapper;
         $this->election_repository = $election_repository;
+        $this->candidate_repository = $candidate_repository;
     }
 
     public function Process(DataSourceConfig $config)
@@ -117,7 +66,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
             $input_directory = $config->input_directory;
             $import_limit = $config->import_limit;
         } else {
-            throw new \Exception("Need to provide FileDataSourceConfig type to Ballotpedia_csv_file_source.Process()");
+            throw new \Exception("Ballotpedia_csv_file_source does not currently support FileDataSourceConfig configuration type");
         }
 
         if($import_limit === -1 && $debugging) {
@@ -161,9 +110,9 @@ class Ballotpedia_CSV_File_Source implements IDataSource
                     
                     $election_state = $line_fields['state'];
                     $election_g_election_date = $line_fields['general_election_date'];
-                    $electoin_r_election_date = $line_fields['general_runoff_election_date'];
+                    $election_r_election_date = $line_fields['general_runoff_election_date'];
 
-                    $election_pre_hash = $election_state.$election_g_election_date.$electoin_r_election_date;
+                    $election_pre_hash = $election_state.$election_g_election_date.$election_r_election_date;
                     $election_hash = hash("md5", $election_pre_hash);
 
                     if(!array_key_exists($election_hash, $processed_election_ids)) {
@@ -211,6 +160,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $election_fields['runoff_election_date'] = $this->set_null_if_empty($fields['general_runoff_election_date']);
         $election_fields['data_source_id'] = $this->data_source_id;
 
+        // For now we need to translate a DataSource Eloquent model into a BusinessLogic model since it takes the whole thing, not just the ID
         $datasource = DatasourceDTO::create($datasource_model);
         
         $updated_or_created_election = $this->election_repository
@@ -221,7 +171,7 @@ class Ballotpedia_CSV_File_Source implements IDataSource
 
     private function election_name_generator($fields) {
         // TODO: factor this out to separate static method on another class for easier unit testing
-        $district_name = Ballotpedia_CSV_File_Source::$state_lookup[$fields['state']];
+        $district_name = StateLookup::lookup($fields['state']);
 
         $general_election_date = null;
         $general_election_date_value = $fields['general_election_date'];
@@ -257,8 +207,11 @@ class Ballotpedia_CSV_File_Source implements IDataSource
         $candidate_fields['facebook_profile'] = $this->set_null_if_empty($fields['facebook_profile']);
         $candidate_fields['twitter_handle'] = $this->set_null_if_empty($fields['twitter_handle']);
         $candidate_fields['data_source_id'] = $this->data_source_id;
+
+        $candidate = new Candidate();
+        CandidateLoader::load($candidate, $candidate_fields);
         
-        $updated_or_created_candidate = Candidate::createOrUpdate($candidate_fields);
+        $updated_or_created_candidate = $this->candidate_repository->save($candidate, $this->data_source_id);
         
         return $updated_or_created_candidate->consolidated_candidate_id;
     }
