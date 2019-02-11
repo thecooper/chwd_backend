@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Candidate\Candidate;
 
 class CandidatesController extends Controller
 {
@@ -15,7 +15,7 @@ class CandidatesController extends Controller
     public function index(Request $request)
     {
         if (isset($request)) {
-            $candidates = ConsolidatedCandidate::take(100)->get();
+            $candidates = Candidate::take(100)->get();
             return response()->json($candidates, 200);
         } else {
             return "Could not find request object";
@@ -24,7 +24,7 @@ class CandidatesController extends Controller
 
     public function show($id)
     {
-        $candidate = ConsolidatedCandidate::find($id);
+        $candidate = Candidate::find($id);
 
         if($candidate == null) {
             return response()->json(null, 404);

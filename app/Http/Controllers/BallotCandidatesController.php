@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 use App\DataLayer\Ballot\Ballot;
 use App\BusinessLogic\BallotManager;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\BusinessLogic\Repositories\CandidateRepository;
 
 class BallotCandidatesController extends Controller
@@ -70,7 +69,6 @@ class BallotCandidatesController extends Controller
     public function update(Request $request, $ballot_id, $id)
     {
       $ballot = Ballot::find($ballot_id);
-      // $candidate = ConsolidatedCandidate::find($id);
       $candidate = $this->candidate_repository->get($id);
       
       if($candidate == null) {

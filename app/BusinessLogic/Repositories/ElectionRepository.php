@@ -5,7 +5,6 @@ namespace App\BusinessLogic\Repositories;
 use App\DataLayer\Election\ElectionFragment;
 use App\DataLayer\Election\Election as ElectionModel;
 use App\DataLayer\Election\ElectionDTO;
-use App\DataLayer\Election\ElectionFragmentDTO;
 use App\DataLayer\DataSource\DatasourceDTO;
 use App\DataLayer\DataSource\DataSourcePriority;
 

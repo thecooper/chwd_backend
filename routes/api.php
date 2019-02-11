@@ -18,7 +18,7 @@ use App\BusinessLogic\Repositories\TweetRepository;
 use App\BusinessLogic\Repositories\CandidateRepository;
 
 use App\DataLayer\Ballot\Ballot;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Election\ConsolidatedElection;
 
 use App\DataSources\Ballotpedia_CSV_File_Source;
@@ -49,7 +49,7 @@ Route::middleware('auth.basic')->group(function () {
 
         Route::resource('ballots/{ballot_id}/candidates', 'BallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
 
-        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, Ballot $ballot, ConsolidatedCandidate $candidate) {
+        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, Ballot $ballot, Candidate $candidate) {
             return response()->json(
               $candidate
                 ->news

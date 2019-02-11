@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DataLayer\Candidate;
+namespace App\DataLayer;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;

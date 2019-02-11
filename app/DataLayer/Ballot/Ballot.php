@@ -39,7 +39,7 @@ class Ballot extends Model
 
     public function candidates()
     {
-        return $this->belongsToMany('App\DataLayer\Candidate\ConsolidatedCandidate', 'user_ballot_candidates', 'user_ballot_id', 'candidate_id');
+        return $this->belongsToMany('App\DataLayer\Candidate\Candidate', 'user_ballot_candidates', 'user_ballot_id', 'candidate_id');
     }
 
     public function verify_belongs_to_user(User $user)

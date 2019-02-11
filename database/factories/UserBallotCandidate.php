@@ -2,7 +2,7 @@
 
 use Faker\Generator as Faker;
 
-$factory->define(\App\DataLayer\Candidate\UserBallotCandidate::class, function (Faker $faker) {
+$factory->define(\App\DataLayer\UserBallotCandidate::class, function (Faker $faker) {
     return [
         //
     ];

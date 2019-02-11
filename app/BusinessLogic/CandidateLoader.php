@@ -1,6 +1,6 @@
 <?php 
 
-namespace App\DataLayer\Candidate;
+namespace App\BusinessLogic;
 
 class CandidateLoader {
     public static function load($model, $inputs) {

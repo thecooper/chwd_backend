@@ -12,6 +12,6 @@ class Election extends Model
      */
     public function candidates()
     {
-        return $this->hasMany('App\DataLayer\Candidate\ConsolidatedCandidate', 'election_id');
+        return $this->hasMany('App\DataLayer\Candidate\Candidate', 'election_id');
     }
 }

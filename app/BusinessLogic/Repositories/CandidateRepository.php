@@ -4,22 +4,33 @@ namespace App\BusinessLogic\Repositories;
 
 use Illuminate\Support\Facades\DB;
 
-use App\DataLayer\Candidate\ConsolidatedCandidate as CandidateModel;
+use App\DataLayer\Candidate\Candidate as CandidateModel;
+use App\DataLayer\Candidate\CandidateDTO;
+use App\DataLayer\Candidate\CandidateFragment;
+use App\DataLayer\DataSource\DataSourcePriority;
+
 use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
+use App\BusinessLogic\CandidateFragmentCombiner;
 
 use \Exception;
 
 class CandidateRepository {
 
-  private $user_ballot_candidate_repository;
+  private $fragment_combiner;
+  
+  public function __construct(CandidateFragmentCombiner $fragment_combiner) {
+    if($fragment_combiner === null) {
+      throw new Exception("Dependency for CandidateRepository (CandidateFragmentCombiner) is null");
+    }
 
-  public function __construct(UserBallotCandidateRepository $user_ballot_candidate_repository) {
-    $this->user_ballot_candidate_repository = $user_ballot_candidate_repository;
+    $this->fragment_combiner = $fragment_combiner;
   }
   
   function all() {
-    throw new Exception('Not Implemented');
+    $db_candidates = CandidateModel::all();
+    
+    return $this->transferAllModels($db_candidates);
   }
     
   /**
@@ -34,16 +45,71 @@ class CandidateRepository {
     return $candidate;
   }
     
-  function save($entity) {
-    throw new Exception('Not Implemented');
-  }
+  function save(Candidate $candidate, $data_source_id) {
+    // TODO: refactor so that only dataource->id is passed in since that's all that is necessary
+
+    // Check to see if the entity find in the database already
+    $existing_candidate = $this->find($candidate);
     
+    // create new candidate fragment database model
+    $candidate_fragment_model = new CandidateFragment();
+    $candidate_fragment_model->data_source_id = $data_source_id;
+    CandidateDTO::convert($candidate, $candidate_fragment_model);
+
+    // save fragment
+    $candidate_fragment_model->save();
+    
+    if($existing_candidate != null) {
+      // combine candidate fragments
+      $fragments = CandidateFragment::where('name', $candidate_fragment_model->name)
+        ->where('district', $candidate_fragment_model->district)
+        ->get()
+        ->toArray();
+
+      // TODO: Refactor this out to another repo
+      // TODO: Ensure that this is being tested correctly. Logic may not be correct
+      $priorities = DataSourcePriority::where('destination_table', 'candidates')
+        ->get()
+        ->sortByDesc('priority')
+        ->toArray();
+        
+      $candidate = $this->fragment_combiner->combine($fragments, $priorities);
+      $candidate->id = $existing_candidate->id;
+      
+      CandidateDTO::convert($candidate, $existing_candidate);
+
+      $existing_candidate->save();
+
+      $saved_candidate = $existing_candidate;
+    } else {
+      // create new candidate db model object
+      $candidate_model = new CandidateModel();
+      // fill in properties from entity data passed in
+      CandidateDTO::convert($candidate, $candidate_model);
+      // save candidate db model
+      $candidate_model->save();
+
+      // Save generated candidate id to candidate_fragment
+      $candidate_fragment_model->candidate_id = $candidate_model->id;
+
+      $saved_candidate =  $candidate_model;
+    }
+
+    return $saved_candidate;
+  }
+   
+  function find(Candidate $candidate) {
+    return CandidateModel::where('name', $candidate->name)
+      ->where('district', $candidate->district)
+      ->first();
+  }
+  
   function delete($id) {
     throw new Exception('Not Implemented');
   }
 
-  function getAllByElectionId($election_id) {
-    $candidate_models = CandidateModel::with('selected')->where('election_id', $election_id);
+  function getAllByElectionId($candidate_id) {
+    $candidate_models = CandidateModel::with('selected')->where('candidate_id', $candidate_id);
     return $this->transferAllModels($candidate_models);
   }
 

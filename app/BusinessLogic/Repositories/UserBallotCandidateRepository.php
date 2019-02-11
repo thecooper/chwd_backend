@@ -2,7 +2,7 @@
 
 namespace App\BusinessLogic\Repositories;
 
-use \App\DataLayer\Candidate\UserBallotCandidate;
+use App\DataLayer\UserBallotCandidate;
 
 use \Exception;
 

@@ -4,26 +4,15 @@ namespace App\BusinessLogic\Models;
 
 use App\DataLayer\Candidate\CandidateDTO;
 
-class Candidate {
-  public $id;
-  public $name;
-  public $party_affiliation;
-  public $candidate_status;
-  public $office;
-  public $office_level;
-  public $is_incumbent;
-  public $district_type;
-  public $district;
-  public $district_identifier;
-  public $ballotpedia_url;
-  public $website_url;
-  public $donate_url;
-  public $facebook_profile;
-  public $twitter_handle;
-  public $data_source_id;
-
+class Candidate extends CandidateBase {
   public $selected = false;
 
+  /**
+   * fromDatabaseModel
+   *
+   * @param App\DataLayer\Candidate\Candidate $candidate_model
+   * @return App\BusinessLogic\Models\Candidate
+   */
   public static function fromDatabaseModel($candidate_model) {
     $candidate = new self();
   

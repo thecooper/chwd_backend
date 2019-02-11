@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\DataLayer\News;
 use App\DataSources\NewsAPIDataSource;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
+use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Election\ConsolidatedElection;
 
 use \DateTime;
@@ -80,12 +80,12 @@ class SelectCandidatesToProcessNews implements ShouldQueue
 
     private function get_candidates_for_news_import($import_limit, $refresh_before_timestamp) {
         if($import_limit == -1) {
-            return ConsolidatedCandidate::all();
+            return Candidate::all();
         } else {
             $candidate_ids_to_process = collect(DB::select($this->candidate_update_id_query, [$refresh_before_timestamp, $import_limit]))
             ->map(function($val) { return $val->id; })->toArray();
         
-            return ConsolidatedCandidate::whereIn('id', $candidate_ids_to_process)->get();
+            return Candidate::whereIn('id', $candidate_ids_to_process)->get();
         }
     }
 

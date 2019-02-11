@@ -3,88 +3,44 @@
 namespace App\DataLayer\Candidate;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-
-use App\DataLayer\EloquentModelTransferManager;
+use Illuminate\Support\Facades\DB;
 
 class Candidate extends Model
 {
-    public $incrementing = false;
-    // protected $primaryKey = "name";
+    protected $primaryKey = 'id';
 
-    protected function setKeysForSaveQuery(Builder $query)
-    {
-        $query
-            ->where('consolidated_candidate_id', '=', $this->getAttribute('consolidated_candidate_id'))
-            ->where('data_source_id', '=', $this->getAttribute('data_source_id'));
-        return $query;
+    public function election() {
+        return $this->belongsTo('App\DataLayer\Election\ConsolidatedElection');
     }
 
-    //
-    public function IsValid()
-    {
-        return true;
+    public function news() {
+        return $this->hasMany('App\DataLayer\News', 'candidate_id');
     }
 
-    public function data_source()
-    {
-        return $this->hasOne('App\DataSource');
-    }
-
-    public static function findByCompositeKey($id, $data_source_id)
-    {
-        return Candidate::where('consolidated_candidate_id', $id)->where('data_source_id', $data_source_id);
-    }
-
-    public static function createOrUpdate($inputs)
-    {
-        $consolidated_candidate = ConsolidatedCandidate::where('name', $inputs['name'])
-            ->where('district', $inputs['district'])->first();
-
-        if($consolidated_candidate == null) {
-            $consolidated_candidate = new ConsolidatedCandidate();
-            $consolidated_candidate->load_fields($inputs);
-            $consolidated_candidate->save();
-
-            $new_candidate = new Candidate();
-            $new_candidate->load_fields($inputs);
-            $new_candidate->consolidated_candidate_id = $consolidated_candidate->id;
-            $new_candidate->save();
-
-            return $new_candidate;
-        } else {
-            $candidate = Candidate::findByCompositeKey($consolidated_candidate->id, $inputs["data_source_id"])->first();
-    
-            if ($candidate == null) {
-                $candidate = new Candidate();
-            }
-    
-            $inputs['consolidated_candidate_id'] = $consolidated_candidate->id;
-            
-            $candidate->load_fields($inputs);
-            
-            try {
-                $candidate->save();
-            } catch (Exception $ex) {
-                throw $ex;
-            }
-
-            $model_transfer_manager = new EloquentModelTransferManager();
-            $consolidator = new CandidateConsolidator($model_transfer_manager);
-            $consolidator->consolidate($candidate->id);
-            
-            return $candidate;
+    /**
+     * @return int of last updated
+     */
+    public function last_news_update_timestamp() {
+        if($this->id == null) {
+            return null;
         }
+
+        $results =  DB::select('select last_updated_timestamp from candidate_news_imports where candidate_id = :id', ["id" => $this->id]);
+
+        if(count($results) == 0) {
+            return null;
+        }
+
+        return $results[0]->last_updated_timestamp;
     }
 
-    public function load_fields($inputs)
-    {
-        CandidateLoader::load($this, $inputs);
-        
-        $this->data_source_id = $inputs['data_source_id'];
-        
-        if(array_key_exists('consolidated_candidate_id', $inputs)) {
-            $this->consolidated_candidate_id = $inputs['consolidated_candidate_id'];
+    public function set_last_news_update_timestamp($timestamp) {
+        $last_updated_timestamp = $this->last_news_update_timestamp();
+
+        if($last_updated_timestamp == null) {
+            DB::insert('insert into candidate_news_imports (candidate_id, last_updated_timestamp) values (?, ?)', [$this->id, $timestamp]);
+        } else {
+            DB::update('update candidate_news_imports set last_updated_timestamp = ? where candidate_id = ?', [$timestamp, $this->id]);
         }
     }
 }

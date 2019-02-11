@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 
 use App\DataLayer\Ballot\Ballot;
 use App\DataSources\GeocodioAPIDataSource;
-use App\DataLayer\Candidate\ConsolidatedCandidate;
 use App\BusinessLogic\Models\Address;
 
 class BallotsController extends Controller
@@ -90,7 +89,6 @@ class BallotsController extends Controller
         return response()->json("endpoint is not yet implemented", 405);
         // $user = $request->user();
 
-        // $candidate = ConsolidatedCandidate::find($candidate_id);
 
         // if($candidate == null) {
         //     return response()->json("candidate with ID ${candidate_id} does not exist", 404);
