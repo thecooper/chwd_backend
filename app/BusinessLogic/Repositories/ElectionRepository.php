@@ -44,7 +44,7 @@ class ElectionRepository {
     return $this->transferModel(ElectionModel::get($id));
   }
 
-  function save(Election $entity, DataSource $datasource) {
+  function save(Election $entity, int $data_source_id) {
     // TODO: refactor so that only dataource->id is passed in since that's all that is necessary
 
     // Check to see if the entity find in the database already
@@ -57,7 +57,7 @@ class ElectionRepository {
     $election_fragment_model->primary_election_date = $entity->primary_election_date;
     $election_fragment_model->general_election_date = $entity->general_election_date;
     $election_fragment_model->runoff_election_date = $entity->runoff_election_date;
-    $election_fragment_model->data_source_id = $datasource->id;
+    $election_fragment_model->data_source_id = $data_source_id;
     $election_fragment_model->election_id = $existing_election == null ? null : $existing_election->id;
 
     // save fragment

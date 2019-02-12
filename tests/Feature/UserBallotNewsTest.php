@@ -59,7 +59,7 @@ class BallotNews extends TestCase
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
       'election_id'=>null
-    ]), $this->datasource);
+    ]), $this->datasource->id);
 
     $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,
@@ -142,7 +142,7 @@ class BallotNews extends TestCase
       'primary_election_date'=>'2018-11-6',
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
-    ]), $this->datasource);
+    ]), $this->datasource->id);
 
     $election2 = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some Other State Election',
@@ -150,7 +150,7 @@ class BallotNews extends TestCase
       'primary_election_date'=>'2018-11-6',
       'general_election_date'=>'2018-11-7',
       'runoff_election_date'=>'2018-11-8',
-    ]), $this->datasource);
+    ]), $this->datasource->id);
 
     $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,

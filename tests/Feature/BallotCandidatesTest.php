@@ -64,7 +64,7 @@ class BallotCandidates extends TestCase
       'runoff_election_date' => '2018-11-8',
       'data_source_id' => $this->datasource->id,
       'election_id' => null,
-    ]), $this->datasource);
+    ]), $this->datasource->id);
   }
   
   public function testGetBallotCandidates()

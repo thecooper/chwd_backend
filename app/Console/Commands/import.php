@@ -8,11 +8,6 @@ use App\DataSources\FileDataSourceConfig;
 use App\DataSources\Ballotpedia\BallotpediaSource;
 use App\DataSources\FieldMapper;
 
-// use App\BusinessLogic\Repositories\ElectionRepository;
-// use App\BusinessLogic\Repositories\CandidateRepository;
-// use App\BusinessLogic\ElectionFragmentCombiner;
-// use App\BusinessLogic\CandidateFragmentCombiner;
-
 class import extends Command
 {
 
