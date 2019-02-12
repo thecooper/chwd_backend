@@ -2,21 +2,20 @@
 
 namespace App\DataSources;
 
+use \DateTime;
+
 class DataSourceImportResult {
     public $processed_line_count;
-
-    public $warning;
-    public $error;
-    public $information;
     public $failed_rows;
+    public $processed_file_count;
+    
     protected $import_start_timestamp;
     protected $import_end_timestamp;
 
     public function __construct() {
-        $this->warning = array();
-        $this->error = array();
-        $this->information = array();
-        $this->failed_rows = array();
+        $this->processed_line_count = 0;
+        $this->failed_rows = 0;
+        $this->processed_file_count = 0;
     }
 
     public function start_import() {

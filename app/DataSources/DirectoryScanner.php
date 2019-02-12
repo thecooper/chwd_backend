@@ -5,12 +5,14 @@ namespace App\DataSources;
 class DirectoryScanner
 {
 
-    public static function getFileHandles($directory)
+    public function getFiles($directory)
     {
         $handles = array();
 
         if (!file_exists($directory)) {
-            throw new \Exception('Invalid configuration: data source directory not found: ' . $directory);
+          // throw new \Exception('Invalid configuration: data source directory not found: ' . $directory);
+          // TODO: Do some logging here
+          return [];
         }
 
         $file_or_directories = scandir($directory);
@@ -26,15 +28,10 @@ class DirectoryScanner
 
                 $full_file_path = join('/', [$directory, $file]);
                 // print_r($full_file_path . '<br/>');
-                print_r("Processing file: " . $full_file_path . "\n");
+                // print_r("Processing file: " . $full_file_path . "\n");
 
                 if (is_file($full_file_path)) {
-                    // print_r('Found file to process: {$file}<br/>');
-                    $handle = fopen($full_file_path, 'r');
-
-                    yield $handle;
-
-                    fclose($handle);
+                    yield $full_file_path;
                 }
             }
         } else {

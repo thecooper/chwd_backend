@@ -3,50 +3,52 @@
 namespace App\DataSources;
 
 class FieldMapper {
-    private $column_mapping;
-    private $field_set = null;
+    private $index_mappings;
 
-    function __construct($column_mapping) {
-        $this->column_mapping = $column_mapping;
+    public function __construct() {
+      $this->index_mappings = [];
     }
-
-    public function load_fields($fields) {
-        $this->field_set = $fields;
-    }
-
-    public function get_value($field_name) {
-        if(!$this->has_value($field_name)) {
-            return null;
-        }
-        
-        return $this->field_set[$this->column_mapping[$field_name]];
-    }
-
-    public function get_fields() {
-        $translated_fields = array();
-
-        foreach($this->column_mapping as $field_name => $translated_field_index) {
-            $translated_fields[$field_name] = $this->field_set[$translated_field_index];
+    
+    /**
+     * load
+     *
+     * @param IndexMapping[] $index_mappings
+     */
+    function load(array $index_mappings) {
+      foreach($index_mappings as $index_mapping) {
+        if(!$index_mapping instanceof IndexMapping) {
+          throw new Exception('Array passed in to FieldMapper#__construct should be of type IndexMapping[]');
         }
 
-        return $translated_fields;
+        $this->index_mappings[$index_mapping->field_name] = $index_mapping->index;
+      }
     }
 
-    public function has_value($field_name) {
-        if($this->field_set == null) {
-            throw new \Exception('FieldMapper::get_value() - fields have not yet been set');
-        }
-        
-        if(!array_key_exists($field_name, $this->column_mapping)) {
-            return false;
-        }
-
-        $field_index = $this->column_mapping[$field_name];
-        
-        if(!array_key_exists($field_index, $this->field_set)) {
-            return false;
-        }
-
-        return true;
+    /**
+     * get_field
+     *
+     * @param string[] $fields
+     * @param string $field_name
+     * @return void
+     */
+    function get_field(array $fields, string $field_name) {
+      // dd($this->index_mappings);
+      if(array_key_exists($field_name, $this->index_mappings)) {
+        $field_index = $this->index_mappings[$field_name];
+        $field_value = $fields[$field_index];
+        return $field_value === '' ? null : $field_value;
+      } else {
+        return null;
+      }
     }
+}
+
+class IndexMapping {
+  public $index;
+  public $field_name;
+
+  public function __construct($index, $field_name) {
+    $this->index = $index;
+    $this->field_name = $field_name;
+  }
 }

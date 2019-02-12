@@ -5,13 +5,13 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\DataSources\FileDataSourceConfig;
-use App\DataSources\Ballotpedia\Ballotpedia_CSV_File_Source;
+use App\DataSources\Ballotpedia\BallotpediaSource;
 use App\DataSources\FieldMapper;
 
-use App\BusinessLogic\Repositories\ElectionRepository;
-use App\BusinessLogic\Repositories\CandidateRepository;
-use App\BusinessLogic\ElectionFragmentCombiner;
-use App\BusinessLogic\CandidateFragmentCombiner;
+// use App\BusinessLogic\Repositories\ElectionRepository;
+// use App\BusinessLogic\Repositories\CandidateRepository;
+// use App\BusinessLogic\ElectionFragmentCombiner;
+// use App\BusinessLogic\CandidateFragmentCombiner;
 
 class import extends Command
 {
@@ -47,21 +47,14 @@ class import extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(BallotpediaSource $ballotpedia_source)
     {
-        $field_mapper = new FieldMapper(Ballotpedia_CSV_File_Source::$column_mapping);
-        $election_repository = new ElectionRepository(new ElectionFragmentCombiner());
-        $candidate_repository = new CandidateRepository(new CandidateFragmentCombiner());
-        $ballotpedia_importer = new Ballotpedia_CSV_File_Source($field_mapper, $election_repository, $candidate_repository);
+      $config = new FileDataSourceConfig();
+      $config->input_directory = env('BALLOTPEDIA.IMPORT_DIR');
+      $config->import_limit = env('BALLOTPEDIA.IMPORT_LIMIT', -1);
+      
+      $import_result = $ballotpedia_source->import($config);
 
-        if($ballotpedia_importer->CanProcess()) {
-            $config = new FileDataSourceConfig();
-            $config->input_directory = env('BALLOTPEDIA.IMPORT_DIR');
-            $config->import_limit = env('BALLOTPEDIA.IMPORT_LIMIT', -1);
-            
-            $import_result = $ballotpedia_importer->Process($config);
-            $line_count = $import_result->processed_line_count;
-            echo "Processed $line_count lines";
-        }
+      echo "Processed {$import_result->processed_line_count} lines across {$import_result->processed_file_count} files\n";
     }
 }
