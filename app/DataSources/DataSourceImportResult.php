@@ -6,7 +6,7 @@ use \DateTime;
 
 class DataSourceImportResult {
     public $processed_line_count;
-    public $failed_rows;
+    public $failed_line_count;
     public $processed_file_count;
     
     protected $import_start_timestamp;
@@ -14,7 +14,7 @@ class DataSourceImportResult {
 
     public function __construct() {
         $this->processed_line_count = 0;
-        $this->failed_rows = 0;
+        $this->failed_line_count = 0;
         $this->processed_file_count = 0;
     }
 
@@ -23,7 +23,7 @@ class DataSourceImportResult {
     }
 
     public function finish_import() {
-        $this->import_end_timepstamp = new DateTime();
+        $this->import_end_timestamp = new DateTime();
     }
 
     /**
@@ -31,6 +31,6 @@ class DataSourceImportResult {
      */
     public function execution_time() {
         $date_interval = $this->import_end_timestamp->diff($this->import_start_timestamp);
-        return $date_interval->format('h:i:s');
+        return $date_interval->format('%h:%i:%s');
     }
 }

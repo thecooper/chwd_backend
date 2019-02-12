@@ -4,18 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\DataLayer\Election\ConsolidatedElection;
-use App\DataLayer\Election\ElectionFragment;
-use App\DataLayer\Election\ElectionConsolidator;
+use App\BusinessLogic\Repositories\ElectionRepository;
 
 class ElectionsController extends Controller
 {
 
-    protected $consolidator;
+    protected $repository;
 
-    public function __construct(ElectionConsolidator $consolidator)
+    public function __construct(ElectionRepository $repository)
     {
-        $this->consolidator = $consolidator;
+        $this->repository = $repository;
     }
 
     /**
@@ -27,32 +25,21 @@ class ElectionsController extends Controller
     {
         $state_abbreviation = $request->query('state', null);
         
-        $elections = new ConsolidatedElection();
+        $elections = null;
         
         if($state_abbreviation != null) {
-            $elections = $elections->where('state_abbreviation', $state_abbreviation);
+          $elections = $this->repository->allByState($state_abbreviation);
+          // $elections = $elections->where('state_abbreviation', $state_abbreviation);
+        } else {
+          $elections = $this->repository->all();
         }
         
-        return response()->json($elections->get(), 200);
-    }
-
-    public function races(Request $request, $id) {
-        $election = ConsolidatedElection::find($id);
+        array_map(function($election) {
+          unset($election->candidates);
+          return $election;
+        }, $elections);
         
-        // var_dump($election->candidates);
-        return response()->json($this->aggregate_races_from_candidates($election->candidates), 200);
-    }
-
-    /**
-     * @param Builder builder: a Laravel Builder sourced from the ConsolidatedElection model
-     * @return Builder builder: the same laravel builder passed in but with additional qualifiers appended on
-     */
-    private function aggregate_races_from_candidates($candidates_collection) {
-        return $candidates_collection
-            ->map(function($candidate) {
-                return preg_replace('/ District ([\d]+|\w\s)/', '', $candidate->office);
-            })
-            ->unique();
+        return response()->json($elections, 200);
     }
 
     /**
@@ -73,23 +60,6 @@ class ElectionsController extends Controller
      */
     public function store(Request $request)
     {
-        // if ($request->has('name') && $request->has('data_source_id')) {
-        //     $election_name = $request->input('name');
-        //     $election_data_source_id = $request->input('data_source_id');
-
-        //     $election = Election::createOrUpdate($request->all());
-
-        //     $updated_election = $this->consolidator->consolidate($election_name);
-
-        //     if (is_array($updated_election) && isset($updated_election->error)) {
-        //         return response()->text($updated_election->error, 404);
-        //     }
-
-        //     return response()->json($updated_election, 201);
-        // } else {
-        //     return response()->json(array("error" => "Missing required parameter"), 400);
-        // }
-
         throw new Exception("Not implemented");
     }
 
@@ -101,26 +71,14 @@ class ElectionsController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $election = ConsolidatedElection::find($id);
+      
+        $election = $this->repository->get(intval($id));
 
         if($election == null) {
             return response()->make("", 404);
         }
         
-        $include_fields = $request->query('include_fields', null);
-
-        if($include_fields != null) {
-            $include_fields = explode(",", $include_fields);
-
-            if(!is_array($include_fields)) {
-                $include_fields = array($include_fields);
-            }
-
-            if(array_search("races", $include_fields) !== false) {
-                $election->races = $this->aggregate_races_from_candidates($election->candidates);
-                unset($election->candidates);
-            }
-        }
+        unset($election->candidates);
         
         return response()->json($election, 200);
     }

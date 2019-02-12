@@ -41,7 +41,13 @@ class ElectionRepository {
   }
 
   function get($id) {
-    return $this->transferModel(ElectionModel::get($id));
+    $election_model = ElectionModel::find($id);
+    
+    if($election_model === null) {
+      return null;
+    }
+
+    return $this->transferModel($election_model);
   }
 
   function save(Election $entity, int $data_source_id) {
@@ -63,6 +69,8 @@ class ElectionRepository {
     // save fragment
     $election_fragment_model->save();
 
+    $saved_election_model = null;
+    
     if($existing_election != null) {
       // combine election fragments
       $fragments = ElectionFragment::where('state_abbreviation', $entity->state_abbreviation)
@@ -86,7 +94,7 @@ class ElectionRepository {
 
       $existing_election->save();
 
-      return $existing_election;
+      $saved_election_model = $existing_election;
     } else {
       // create new election db model object
       $election_model = new ElectionModel();
@@ -99,8 +107,12 @@ class ElectionRepository {
       $election_fragment_model->election_id = $election_model->id;
       $election_fragment_model->save();
 
-      return $election_model;
+      $saved_election_model = $election_model;
     }
+
+    ElectionDTO::convert($saved_election_model, $entity);
+
+    return $entity;
   }
 
   function delete($id) {

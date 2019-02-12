@@ -2,6 +2,8 @@
 
 namespace App\DataSources\Ballotpedia;
 
+use Illuminate\Support\Facades\Log;
+
 use App\DataSources\DirectoryScanner;
 use App\DataSources\DataSourceImportResult;
 use App\DataSources\FileDataSourceConfig;
@@ -47,6 +49,7 @@ class BallotpediaSource {
       $fieldList = $this->field_generator->generate_fields($file);
 
       $first_line = true;
+      $current_line_count = 0;
 
       foreach($fieldList as $fields) {
         // Skip the first line
@@ -54,11 +57,29 @@ class BallotpediaSource {
           $first_line = false;
           continue;
         }
+
+        if($this->result->processed_line_count == $import_limit) {
+          break;
+        }
         
-        $this->data_processor->process($fields);
+        try {
+          $this->data_processor->process($fields);
+        } catch (\Exception $ex) {
+          Log::error("{$ex->getMessage()} -- $file:$current_line_count\n");
+          echo "{$ex->getMessage()} -- $file:$current_line_count\n";
+          $this->result->failed_line_count++;
+        }
+
+        $current_line_count++;
         $this->result->processed_line_count++;
       }
+
       $this->result->processed_file_count++;
+      $current_line_count = 0;
+
+      if($this->result->processed_line_count == $import_limit) {
+        break;
+      }
     }
 
     $this->result->finish_import();

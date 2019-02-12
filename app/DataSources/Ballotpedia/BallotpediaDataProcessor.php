@@ -6,23 +6,28 @@ use App\DataSources\FieldMapper;
 use App\DataSources\IndexMapping;
 
 use App\BusinessLogic\Models\Election;
+use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\ElectionLoader;
+use App\BusinessLogic\CandidateLoader;
 use App\BusinessLogic\Repositories\ElectionRepository;
+use App\BusinessLogic\Repositories\CandidateRepository;
 
 class BallotpediaDataProcessor implements IFieldProcessor {
 
   // Dependencies
   private $field_mapper;
   private $election_repository;
+  private $candidate_repository;
 
   // Service State
   private $initialized;
   private $data_source_id;
   private $processed_elections = [];
   
-  public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository) {
+  public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository, CandidateRepository $candidate_repository) {
     $this->field_mapper = $field_mapper;
     $this->election_repository = $election_repository;
+    $this->candidate_repository = $candidate_repository;
     $this->initialized = false;
   }
   
@@ -60,15 +65,24 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       throw new \Exception("Unable to process lines because BallotpediaDataProcessor#initialize() has not been called first");
     }
 
-    $this->process_election($fields);
+    try {
+      $election = $this->process_election($fields);
+    } catch (\Exception $ex) {
+      throw new \Exception("Unable to save election: {$ex->getMessage()}");
+    }
 
-    $this->process_candidate($fields);
+    try {
+      $this->process_candidate($fields, $election->id);
+    } catch (\Exception $ex) {
+      throw new \Exception("Unable to save candidate: {$ex->getMessage()}");
+    }
+
   }
 
   private function process_election(array $fields) {
     $cache_key = $this->generate_election_cache_key($fields);
 
-    if(!in_array($cache_key, $this->processed_elections)) {
+    if(!array_key_exists($cache_key, $this->processed_elections)) {
       $translated_fields = $this->translate_election_fields($fields);
 
       $election = new Election();
@@ -76,11 +90,15 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       ElectionLoader::load($election, $translated_fields);
 
       // Save election
-      $this->election_repository->save($election);
+      $election = $this->election_repository->save($election, $this->data_source_id);
 
       // Update cache
-      array_push($this->processed_elections, $cache_key);
+      $this->processed_elections[$cache_key] = $election;
+
+      return $election;
     }
+
+    return $this->processed_elections[$cache_key];
   }
 
   private function translate_election_fields(array $fields) {
@@ -101,9 +119,63 @@ class BallotpediaDataProcessor implements IFieldProcessor {
     ];
   }
 
-  private function process_candidate(array $fields) {
+  private function process_candidate(array $fields, int $election_id) {
+    $candidate_fields = $this->translate_candidate_fields($fields);
 
+    $candidate_fields['election_id'] = $election_id;
+
+    $candidate = new Candidate();
+
+    CandidateLoader::load($candidate, $candidate_fields);
+
+    $this->candidate_repository->save($candidate, $this->data_source_id);
   }
+
+  private function translate_candidate_fields(array $fields) {
+    return [
+      'id' => null,
+      'name' => $this->field_mapper->get_field($fields, 'name'),
+      'party_affiliation' => $this->field_mapper->get_field($fields, 'party_affiliation'),
+      'election_status' => $this->field_mapper->get_field($fields, 'general_election_status') ?: 'On the Ballot',
+      'office' => $this->field_mapper->get_field($fields, 'office'),
+      'office_level' => $this->field_mapper->get_field($fields, 'office_level'),
+      'is_incumbent' => strtolower($this->field_mapper->get_field($fields, 'is_incumbent')) === 'yes',
+      'district_type' => $this->field_mapper->get_field($fields, 'district_type'),
+      'district' => $this->field_mapper->get_field($fields, 'district_name'),
+      'district_identifier' => $this->generate_district_identifier($this->field_mapper->get_field($fields, '')),
+      'ballotpedia_url' => $this->field_mapper->get_field($fields, 'ballotpedia_url'),
+      'website_url' => $this->field_mapper->get_field($fields, 'website_url'),
+      'donate_url' => null,
+      'facebook_profile' => $this->field_mapper->get_field($fields, 'facebook_profile'),
+      'twitter_handle' => $this->field_mapper->get_field($fields, 'twitter_handle'),
+      'election_id' => null,
+    ];
+  }
+
+  private function generate_district_identifier($district_name) {
+    if($district_name === null) {
+      return '';
+    }
+
+    // TODO: refactor district identifier into more extensible code
+    $regex = '';
+
+    if(strpos($district_name, "Alaska State Senate") !== false) {
+        $regex = '/District ([a-zA-Z])/';
+    } else {
+        $regex = '/District ([\d]+)|Circuit Place ([\d]+)/';
+    }
+    
+    $match_count = preg_match_all($regex, $district_name, $matches, PREG_SET_ORDER);
+    
+    if($match_count == 0 || $match_count == false) {
+        return null;
+    }
+
+    $id = $matches[0][1];
+
+    return $id;
+}
 
   private function generate_election_cache_key(array $fields) {
     $election_state = $this->field_mapper->get_field($fields, 'state');

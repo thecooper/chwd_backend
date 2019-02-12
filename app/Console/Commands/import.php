@@ -51,5 +51,7 @@ class import extends Command
       $import_result = $ballotpedia_source->import($config);
 
       echo "Processed {$import_result->processed_line_count} lines across {$import_result->processed_file_count} files\n";
+      echo "{$import_result->failed_line_count} lines skipped\n";
+      echo "Total execution time: {$import_result->execution_time()}\n";
     }
 }
