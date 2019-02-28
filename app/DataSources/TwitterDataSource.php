@@ -65,6 +65,8 @@ class TwitterDataSource {
 
     $tweets = $this->get_statuses_from_list($list_id);
     
+    $this->destroy_list($list_id);
+    
     return $this->parse_tweets($tweets);
   }
 
@@ -146,6 +148,14 @@ class TwitterDataSource {
     $this->check_status_code('Unable to create Twitter list');
 
     return $list_response->id;
+  }
+
+  public function destroy_list($list_id) {
+    $response = $this->twitter_oauth->post('lists/destroy', [
+      'list_id' => $list_id
+    ]);
+
+    $this->check_status_code('Unable to delete Twitter list');
   }
 
   private function generateRandomString($length = 10) {
