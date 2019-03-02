@@ -26,9 +26,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         if(env("APP_ENV") === "local") {
-            $schedule->command(RunNewsImport::class)
-                ->weekly()
-                ->mondays();
+            // $schedule->command(RunNewsImport::class)
+            //     ->weekly()
+            //     ->mondays();
         }
     }
 

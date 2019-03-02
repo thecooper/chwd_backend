@@ -102,7 +102,3 @@ Route::get('candidates/{candidate_id}/tweets', function(Request $request, $candi
 
 // User Registration
 Route::post('users', 'UsersController@store');
-
-Route::get('elections/{election_id}', function($election_id) {
-    (new SelectCandidatesToProcessNews())->handle();
-});
