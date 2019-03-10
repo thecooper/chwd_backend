@@ -55,7 +55,7 @@ class ElectionRepository {
 
     // Check to see if the entity find in the database already
     $existing_election = $this->find($entity);
-    
+
     // create new election fragment database model
     $election_fragment_model = new ElectionFragment();
     $election_fragment_model->name = $entity->name;
@@ -72,6 +72,7 @@ class ElectionRepository {
     $saved_election_model = null;
     
     if($existing_election != null) {
+
       // combine election fragments
       $fragments = ElectionFragment::where('state_abbreviation', $entity->state_abbreviation)
         ->where('primary_election_date', $entity->primary_election_date)
@@ -97,6 +98,7 @@ class ElectionRepository {
       $saved_election_model = $existing_election;
     } else {
       // create new election db model object
+
       $election_model = new ElectionModel();
       // fill in properties from entity data passed in
       ElectionDTO::convert($entity, $election_model);

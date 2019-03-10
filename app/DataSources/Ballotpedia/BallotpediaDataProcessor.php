@@ -12,27 +12,25 @@ use App\BusinessLogic\CandidateLoader;
 use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\Repositories\CandidateRepository;
 
-class BallotpediaDataProcessor implements IFieldProcessor {
+class BallotpediaDataProcessor {
 
   // Dependencies
   private $field_mapper;
   private $election_repository;
   private $candidate_repository;
+  private $district_identity_generator;
 
   // Service State
   private $initialized;
   private $data_source_id;
   private $processed_elections = [];
   
-  public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository, CandidateRepository $candidate_repository) {
+  public function __construct(FieldMapper $field_mapper, ElectionRepository $election_repository, CandidateRepository $candidate_repository, DistrictIdentityGenerator $district_identity_generator) {
     $this->field_mapper = $field_mapper;
     $this->election_repository = $election_repository;
     $this->candidate_repository = $candidate_repository;
+    $this->district_identity_generator = $district_identity_generator;
     $this->initialized = false;
-  }
-  
-  public function initialize(int $data_source_id) {
-    $this->data_source_id = $data_source_id;
 
     $this->field_mapper->load([
       new IndexMapping(0, 'state'),
@@ -56,11 +54,15 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       new IndexMapping(18, 'facebook_profile'),
       new IndexMapping(19, 'twitter_handle')
     ]);
+  }
+  
+  public function initialize(int $data_source_id) {
+    $this->data_source_id = $data_source_id;
 
     $this->initialized = true;
   }
   
-  public function process(array $fields) {
+  public function process_fields(array $fields) {
     if(!$this->initialized) {
       throw new \Exception("Unable to process lines because BallotpediaDataProcessor#initialize() has not been called first");
     }
@@ -76,7 +78,6 @@ class BallotpediaDataProcessor implements IFieldProcessor {
     } catch (\Exception $ex) {
       throw new \Exception("Unable to save candidate: {$ex->getMessage()}");
     }
-
   }
 
   private function process_election(array $fields) {
@@ -91,7 +92,6 @@ class BallotpediaDataProcessor implements IFieldProcessor {
 
       // Save election
       $election = $this->election_repository->save($election, $this->data_source_id);
-
       // Update cache
       $this->processed_elections[$cache_key] = $election;
 
@@ -107,14 +107,22 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       $this->field_mapper->get_field($fields, 'general_election_date')
     );
 
+    $primary_election_date = $this->field_mapper->get_field($fields, 'primary_election_date');
+    $general_election_date = $this->field_mapper->get_field($fields, 'general_election_date');
+    $runoff_election_date = $this->field_mapper->get_field($fields, 'general_runoff_election_date');
+    
+    $primary_election_date_parsed = $primary_election_date === null ? null : date('Y-m-d', strtotime($primary_election_date));
+    $general_election_date_parsed = $general_election_date === null ? null : date('Y-m-d', strtotime($general_election_date));
+    $runoff_election_date_parsed = $runoff_election_date === null ? null : date('Y-m-d', strtotime($runoff_election_date));
+
     return [
       'id' => null,
       'election_id' => null,
       'name' => $election_name,
       'state_abbreviation' => $this->field_mapper->get_field($fields, 'state'),
-      'primary_election_date' => $this->field_mapper->get_field($fields, 'primary_election_date'),
-      'general_election_date' => $this->field_mapper->get_field($fields, 'general_election_date'),
-      'runoff_election_date' => $this->field_mapper->get_field($fields, 'general_runoff_election_date'),
+      'primary_election_date' => $primary_election_date_parsed,
+      'general_election_date' => $general_election_date_parsed,
+      'runoff_election_date' => $runoff_election_date_parsed,
       'data_source_id' => $this->data_source_id,
     ];
   }
@@ -132,6 +140,8 @@ class BallotpediaDataProcessor implements IFieldProcessor {
   }
 
   private function translate_candidate_fields(array $fields) {
+    $district_name = $this->field_mapper->get_field($fields, 'district_name');
+
     return [
       'id' => null,
       'name' => $this->field_mapper->get_field($fields, 'name'),
@@ -141,8 +151,8 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       'office_level' => $this->field_mapper->get_field($fields, 'office_level'),
       'is_incumbent' => strtolower($this->field_mapper->get_field($fields, 'is_incumbent')) === 'yes',
       'district_type' => $this->field_mapper->get_field($fields, 'district_type'),
-      'district' => $this->field_mapper->get_field($fields, 'district_name'),
-      'district_identifier' => $this->generate_district_identifier($this->field_mapper->get_field($fields, '')),
+      'district' => $district_name,
+      'district_identifier' => $this->district_identity_generator->generate($district_name),
       'ballotpedia_url' => $this->field_mapper->get_field($fields, 'ballotpedia_url'),
       'website_url' => $this->field_mapper->get_field($fields, 'website_url'),
       'donate_url' => null,
@@ -151,31 +161,6 @@ class BallotpediaDataProcessor implements IFieldProcessor {
       'election_id' => null,
     ];
   }
-
-  private function generate_district_identifier($district_name) {
-    if($district_name === null) {
-      return '';
-    }
-
-    // TODO: refactor district identifier into more extensible code
-    $regex = '';
-
-    if(strpos($district_name, "Alaska State Senate") !== false) {
-        $regex = '/District ([a-zA-Z])/';
-    } else {
-        $regex = '/District ([\d]+)|Circuit Place ([\d]+)/';
-    }
-    
-    $match_count = preg_match_all($regex, $district_name, $matches, PREG_SET_ORDER);
-    
-    if($match_count == 0 || $match_count == false) {
-        return null;
-    }
-
-    $id = $matches[0][1];
-
-    return $id;
-}
 
   private function generate_election_cache_key(array $fields) {
     $election_state = $this->field_mapper->get_field($fields, 'state');

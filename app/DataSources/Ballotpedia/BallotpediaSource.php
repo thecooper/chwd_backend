@@ -16,20 +16,17 @@ class BallotpediaSource {
   private $directory_scanner;
   private $data_processor;
   
-  private $result;
-  
   public function __construct(DirectoryScanner $directory_scanner, 
                               CSVFieldGenerator $field_generator,
                               BallotpediaDataProcessor $data_processor) {
     $this->field_generator = $field_generator;
     $this->directory_scanner = $directory_scanner;
     $this->data_processor = $data_processor;
-
-    $this->result = new DataSourceImportResult();
   }
-
+  
   public function import(FileDataSourceConfig $config) {
-    $this->result->start_import();
+    $result = new DataSourceImportResult();
+    $result->start_import();
 
     $input_directory = $config->input_directory;
     $import_limit = $config->import_limit;
@@ -58,32 +55,32 @@ class BallotpediaSource {
           continue;
         }
 
-        if($this->result->processed_line_count == $import_limit) {
+        if($result->processed_line_count == $import_limit) {
           break;
         }
         
         try {
-          $this->data_processor->process($fields);
+          $this->data_processor->process_fields($fields);
         } catch (\Exception $ex) {
           Log::error("{$ex->getMessage()} -- $file:$current_line_count\n");
           echo "{$ex->getMessage()} -- $file:$current_line_count\n";
-          $this->result->failed_line_count++;
+          $result->failed_line_count++;
         }
 
         $current_line_count++;
-        $this->result->processed_line_count++;
+        $result->processed_line_count++;
       }
 
-      $this->result->processed_file_count++;
+      $result->processed_file_count++;
       $current_line_count = 0;
 
-      if($this->result->processed_line_count == $import_limit) {
+      if($result->processed_line_count == $import_limit) {
         break;
       }
     }
 
-    $this->result->finish_import();
+    $result->finish_import();
 
-    return $this->result;
+    return $result;
   }
 }

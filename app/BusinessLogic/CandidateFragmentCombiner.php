@@ -25,9 +25,7 @@ class CandidateFragmentCombiner {
       if($fragments_collection->contains('data_source_id', $priority["data_source_id"])) {
         $priority_fragment = $fragments_collection->firstWhere('data_source_id', $priority["data_source_id"]);
 
-        if(isset($priority_fragment["id"])) {
-          $compiled_candidate->id = $priority_fragment["id"];
-        }
+        $compiled_candidate->id = $priority_fragment["id"];
 
         if(isset($priority_fragment["name"])) {
           $compiled_candidate->name = $priority_fragment["name"];

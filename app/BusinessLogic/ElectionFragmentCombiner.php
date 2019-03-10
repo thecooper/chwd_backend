@@ -25,11 +25,25 @@ class ElectionFragmentCombiner {
       if($fragments_collection->contains('data_source_id', $priority["data_source_id"])) {
         $priority_fragment = $fragments_collection->firstWhere('data_source_id', $priority["data_source_id"]);
 
-        $compiled_election->state_abbreviation = $priority_fragment["state_abbreviation"];
-        $compiled_election->name = $priority_fragment["name"];
-        $compiled_election->primary_election_date = $priority_fragment["primary_election_date"];
-        $compiled_election->general_election_date = $priority_fragment["general_election_date"];
-        $compiled_election->runoff_election_date = $priority_fragment["runoff_election_date"];
+        if(isset($priority_fragment["state_abbreviation"])) {
+          $compiled_election->state_abbreviation = $priority_fragment["state_abbreviation"];
+        }
+
+        if(isset($priority_fragment["name"])) {
+          $compiled_election->name = $priority_fragment["name"];
+        }
+
+        if(isset($priority_fragment["primary_election_date"])) {
+          $compiled_election->primary_election_date = $priority_fragment["primary_election_date"];
+        }
+
+        if(isset($priority_fragment["general_election_date"])) {
+          $compiled_election->general_election_date = $priority_fragment["general_election_date"];
+        }
+
+        if(isset($priority_fragment["runoff_election_date"])) {
+          $compiled_election->runoff_election_date = $priority_fragment["runoff_election_date"];
+        }
       }
     }
 
