@@ -85,10 +85,13 @@ class CandidateRepositoryTest extends TestCase
 
     // Act
     $saved_candidate = $this->repo->save($candidate, $this->datasource->id);
+    $fragments = \App\DataLayer\Candidate\CandidateFragment::all(); // ('candidate_id', $saved_candidate->id);
 
     // Assert
     $this->assertNotNull($saved_candidate->id);
     $this->assertSameValues($candidate, $saved_candidate);
+    $this->assertEquals(1, $fragments->count());
+    $this->assertEquals($saved_candidate->id, $fragments->first()->candidate_id);
   }
 
   public function testCanSaveMultipleCandidateFragments() {
@@ -131,6 +134,34 @@ class CandidateRepositoryTest extends TestCase
     // Assert
     $this->assertEquals('https://www.yahoo.com', $saved_candidate->donate_url);
     $this->assertEquals($candidate_model->facebook_profile, $saved_candidate->facebook_profile);
+  }
+
+  public function testCanSaveCandidateFragmentTwice() {
+    // Arrange
+    $datasource_priorities = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+      'destination_table' => 'candidates',
+      'data_source_id' => $this->datasource->id,
+      'priority' => 1
+    ]);
+
+    $candidate_model = factory(\App\DataLayer\Candidate\Candidate::class)->make([
+      'election_id' => $this->election->id
+    ]);
+
+    $candidate = new \App\BusinessLogic\Models\Candidate();
+
+    CandidateDTO::convert($candidate_model, $candidate);
+    $candidate = $this->repo->save($candidate, $this->datasource->id);
+    $candidate->election_status = 'Out of the Race';
+    
+    // Act
+    $saved_candidate = $this->repo->save($candidate, $this->datasource->id);
+    $candidate_fragments = \App\DataLayer\Candidate\CandidateFragment::where('candidate_id', $saved_candidate->id);
+
+    // Assert
+    $this->assertNotNull($saved_candidate->id);
+    $this->assertEquals(1, $candidate_fragments->count());
+    $this->assertEquals('Out of the Race', $candidate_fragments->first()->election_status);
   }
 
   private function assertSameValues($expected, $actual) {

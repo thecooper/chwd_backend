@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use App\BusinessLogic\Models\Candidate;
 use App\DataLayer\DataSource\DataSourcePriority;
 
+use \Exception;
+
 class CandidateFragmentCombiner {
 
   /**
@@ -21,11 +23,13 @@ class CandidateFragmentCombiner {
 
     $compiled_candidate = new Candidate();
     
+    if(count($priorities) < 1) {
+      throw new Exception("Cannot combine candidate fragments because no priority order exists");
+    } 
+    
     foreach($priorities as $priority) {
       if($fragments_collection->contains('data_source_id', $priority["data_source_id"])) {
         $priority_fragment = $fragments_collection->firstWhere('data_source_id', $priority["data_source_id"]);
-
-        $compiled_candidate->id = $priority_fragment["id"];
 
         if(isset($priority_fragment["name"])) {
           $compiled_candidate->name = $priority_fragment["name"];
@@ -86,7 +90,6 @@ class CandidateFragmentCombiner {
         if(isset($priority_fragment["election_id"])) {
           $compiled_candidate->election_id = $priority_fragment["election_id"];
         }
-
       }
     }
 

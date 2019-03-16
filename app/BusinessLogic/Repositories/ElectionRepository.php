@@ -56,21 +56,26 @@ class ElectionRepository {
     // Check to see if the entity find in the database already
     $existing_election = $this->find($entity);
 
-    // create new election fragment database model
-    $election_fragment_model = new ElectionFragment();
-    $election_fragment_model->name = $entity->name;
-    $election_fragment_model->state_abbreviation = $entity->state_abbreviation;
-    $election_fragment_model->primary_election_date = $entity->primary_election_date;
-    $election_fragment_model->general_election_date = $entity->general_election_date;
-    $election_fragment_model->runoff_election_date = $entity->runoff_election_date;
-    $election_fragment_model->data_source_id = $data_source_id;
-    $election_fragment_model->election_id = $existing_election == null ? null : $existing_election->id;
-
-    // save fragment
-    $election_fragment_model->save();
-
-    $saved_election_model = null;
+    $election_fragment_model = ElectionFragment::where('election_id', $entity->id)
+      ->where('data_source_id', $data_source_id)
+      ->first();
     
+    if($election_fragment_model !== null) {
+      $fragment_id = $election_fragment_model->id;
+      ElectionDTO::convert($entity, $election_fragment_model);
+      $election_fragment_model->id = $fragment_id;
+
+      $election_fragment_model->save();
+    } else {
+      // create new election fragment database model
+      $election_fragment_model = new ElectionFragment();
+      $election_fragment_model->data_source_id = $data_source_id;
+      ElectionDTO::convert($entity, $election_fragment_model);
+  
+      // save fragment
+      $election_fragment_model->save();
+    }
+
     if($existing_election != null) {
 
       // combine election fragments
@@ -95,7 +100,9 @@ class ElectionRepository {
 
       $existing_election->save();
 
-      $saved_election_model = $existing_election;
+      ElectionDTO::convert($entity, $existing_election);
+
+      return $entity;
     } else {
       // create new election db model object
 
@@ -109,12 +116,10 @@ class ElectionRepository {
       $election_fragment_model->election_id = $election_model->id;
       $election_fragment_model->save();
 
-      $saved_election_model = $election_model;
+      ElectionDTO::convert($election_model, $entity);
+
+      return $entity;
     }
-
-    ElectionDTO::convert($saved_election_model, $entity);
-
-    return $entity;
   }
 
   function delete($id) {

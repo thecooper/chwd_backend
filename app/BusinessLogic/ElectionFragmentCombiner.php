@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use App\BusinessLogic\Models\Election;
 use App\DataLayer\DataSource\DataSourcePriority;
 
+use \Exception;
+
 class ElectionFragmentCombiner {
 
   /**
@@ -17,6 +19,10 @@ class ElectionFragmentCombiner {
    * @return App\BusinessLogic\Models\Election
    */
   public function combine(array $fragments, array $priorities) {
+    if(count($priorities) < 1) {
+      throw new Exception("Unable to combine election fragments because no priority order exists");
+    }
+    
     $fragments_collection = collect($fragments);
 
     $compiled_election = new Election();

@@ -118,13 +118,35 @@ class ElectionRepositoryTest extends TestCase
     $this->assertEquals($election_model->general_election_date, $saved_election->general_election_date);
   }
 
+  public function testCanSaveSameElectionFragmentTwice() {
+    // Arrange
+    $datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
+    $election_model = factory(\App\DataLayer\Election\Election::class)->make();
+
+    $datasource_priorities = factory(\App\DataLayer\DataSource\DataSourcePriority::class)->create([
+      'destination_table' => 'elections',
+      'data_source_id' => $datasource->id,
+      'priority' => 1
+    ]);
+    
+    $election = new \App\BusinessLogic\Models\Election();
+
+    ElectionDTO::convert($election_model, $election);
+
+    // Act
+    $this->repo->save($election, $datasource->id);
+    $saved_election = $this->repo->save($election, $datasource->id);
+    $fragments = ElectionFragment::where('election_id', $saved_election->id);
+
+    // Assert
+    $this->assertEquals(1, $fragments->count());
+  }
+  
   private function assertSameValues($expected, $actual) {
     $this->assertEquals($expected->name, $actual->name);
     $this->assertEquals($expected->state_abbreviation, $actual->state_abbreviation);
     $this->assertEquals($expected->primary_election_date, $actual->primary_election_date);
     $this->assertEquals($expected->general_election_date, $actual->general_election_date);
     $this->assertEquals($expected->runoff_election_date, $actual->runoff_election_date);
-
-    // $this->assertEquals($expected->election_id, $actual->election_id, "Expected that property election_id would have value {$expected->election_id}, but instead got value {$actual->election_id}");
   }
 }
