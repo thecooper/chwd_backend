@@ -11,6 +11,7 @@ use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\CandidateFragmentCombiner;
 use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\Models\Election;
+use App\BusinessLogic\Validation\CandidateValidation;
 
 use App\DataSources\FieldMapper;
 use App\DataSources\Ballotpedia\BallotpediaDataProcessor;
@@ -30,7 +31,7 @@ class BallotpediaDataProcessorTest extends TestCase
 
     $this->election_repo = new ElectionRepository($election_fragment_combiner);
     $this->field_mapper = new FieldMapper();
-    $this->candidate_repo = new CandidateRepository($candidate_fragment_combiner);
+    $this->candidate_repo = new CandidateRepository($candidate_fragment_combiner, new CandidateValidation());
     $this->district_identity_generator = new DistrictIdentityGenerator();
   }
 

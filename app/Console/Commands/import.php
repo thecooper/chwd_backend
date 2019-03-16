@@ -48,10 +48,10 @@ class import extends Command
       $config->input_directory = env('BALLOTPEDIA.IMPORT_DIR');
       $config->import_limit = env('BALLOTPEDIA.IMPORT_LIMIT', -1);
       
-      $import_result = $ballotpedia_source->import($config);
-
-      echo "Processed {$import_result->processed_line_count} lines across {$import_result->processed_file_count} files\n";
-      echo "{$import_result->failed_line_count} lines skipped\n";
-      echo "Total execution time: {$import_result->execution_time()}\n";
+      try {
+        $import_result = $ballotpedia_source->import($config);
+      } catch (Exception $ex) {
+        Log::channel('import')->error("There was a critical error: {$ex->getMessage()}");
+      }
     }
 }

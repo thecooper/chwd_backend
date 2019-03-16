@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\CandidateFragmentCombiner;
+use App\BusinessLogic\Validation\CandidateValidation;
 
 use App\DataLayer\Candidate\Candidate;
 use App\DataLayer\Candidate\CandidateDTO;
@@ -26,8 +27,7 @@ class CandidateRepositoryTest extends TestCase
 
     $this->election = factory(\App\DataLayer\Election\Election::class)->create();
     $this->datasource = factory(\App\DataLayer\DataSource\DataSource::class)->create();
-    $candidate_fragment_combiner = new CandidateFragmentCombiner();
-    $this->repo = new CandidateRepository($candidate_fragment_combiner);
+    $this->repo = new CandidateRepository(new CandidateFragmentCombiner(), new CandidateValidation());
   }
 
   /**
@@ -152,7 +152,7 @@ class CandidateRepositoryTest extends TestCase
 
     CandidateDTO::convert($candidate_model, $candidate);
     $candidate = $this->repo->save($candidate, $this->datasource->id);
-    $candidate->election_status = 'Out of the Race';
+    $candidate->election_status = 'Lost';
     
     // Act
     $saved_candidate = $this->repo->save($candidate, $this->datasource->id);
@@ -161,7 +161,7 @@ class CandidateRepositoryTest extends TestCase
     // Assert
     $this->assertNotNull($saved_candidate->id);
     $this->assertEquals(1, $candidate_fragments->count());
-    $this->assertEquals('Out of the Race', $candidate_fragments->first()->election_status);
+    $this->assertEquals('Lost', $candidate_fragments->first()->election_status);
   }
 
   private function assertSameValues($expected, $actual) {

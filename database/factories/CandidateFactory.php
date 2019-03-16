@@ -6,7 +6,7 @@ $factory->define(\App\DataLayer\Candidate\Candidate::class, function (Faker $fak
   return [
     'name' => $faker->name,
     'party_affiliation' => $faker->randomElement(['Democratic', 'Republican', 'Libertarian']),
-    'election_status' => $faker->randomElement(['On The Ballot', 'Withdrew', 'NULL', 'Disqualified']),
+    'election_status' => $faker->randomElement(['On the Ballot', 'Withdrew', 'Disqualified']),
     'office' => $faker->randomElement(['Governor', 'Senate', 'Representative']),
     'office_level' => $faker->randomElement(['State', 'Local', 'Federal']),
     'is_incumbent' => $faker->randomElement([1, 0]),

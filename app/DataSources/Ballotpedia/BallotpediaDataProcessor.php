@@ -2,6 +2,8 @@
 
 namespace App\DataSources\Ballotpedia;
 
+use Illuminate\Support\Facades\Log;
+
 use App\DataSources\FieldMapper;
 use App\DataSources\IndexMapping;
 
@@ -11,6 +13,8 @@ use App\BusinessLogic\ElectionLoader;
 use App\BusinessLogic\CandidateLoader;
 use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\Repositories\CandidateRepository;
+
+use DateTime;
 
 class BallotpediaDataProcessor {
 
@@ -74,8 +78,15 @@ class BallotpediaDataProcessor {
     }
 
     try {
+      $start_candidate_processing = microtime(true);
+      
       $this->process_candidate($fields, $election->id);
+      
+      $end_candidate_processing = microtime(true);
+      $timediff = ($end_candidate_processing - $start_candidate_processing) * 1000;
+      Log::channel('import')->debug("[Benchmark] Candidate Row Processing: {$timediff} milliseconds");
     } catch (\Exception $ex) {
+      // Log::channel(['import'])->warn("Unable to save candidate: {$ex->getMessage()}");
       throw new \Exception("Unable to save candidate: {$ex->getMessage()}");
     }
   }
@@ -92,6 +103,7 @@ class BallotpediaDataProcessor {
 
       // Save election
       $election = $this->election_repository->save($election, $this->data_source_id);
+
       // Update cache
       $this->processed_elections[$cache_key] = $election;
 
@@ -136,7 +148,21 @@ class BallotpediaDataProcessor {
 
     CandidateLoader::load($candidate, $candidate_fields);
 
+    $this->correct_candidate($candidate);
+    
     $this->candidate_repository->save($candidate, $this->data_source_id);
+  }
+  
+  private function correct_candidate(Candidate $candidate) {
+    if($candidate->election_status === 'NULL' || $candidate->election_status === '' || $candidate->election_status === null) {
+      Log::channel('import')->warn("Election status for candidate {$candidate->name} was converted from {$candidate->election_status} to 'Unknown'");
+      $candidate->election_status = 'Unknown';
+    }
+    
+    if($candidate->party_affiliation === 'NULL' || $candidate->party_affiliation === '' || $candidate->party_affiliation === null) {
+      Log::channel('import')->warn("Party affiliation for candidate {$candidate->name} was converted from {$candidate->party_affiliation} to 'Independent'");
+      $candidate->party_affiliation = 'Independent';
+    }
   }
 
   private function translate_candidate_fields(array $fields) {

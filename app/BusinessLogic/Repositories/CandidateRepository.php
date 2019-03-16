@@ -12,19 +12,26 @@ use App\DataLayer\DataSource\DataSourcePriority;
 use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
 use App\BusinessLogic\CandidateFragmentCombiner;
+use App\BusinessLogic\Validation\CandidateValidation;
 
 use \Exception;
 
 class CandidateRepository {
 
   private $fragment_combiner;
+  private $validation;
   
-  public function __construct(CandidateFragmentCombiner $fragment_combiner) {
+  public function __construct(CandidateFragmentCombiner $fragment_combiner, CandidateValidation $validation) {
     if($fragment_combiner === null) {
       throw new Exception("Dependency for CandidateRepository (CandidateFragmentCombiner) is null");
     }
-
+    
+    if($validation === null) {
+      throw new Exception("Dependency for CandidateRepository (CandidateValidation) is null");
+    }
+    
     $this->fragment_combiner = $fragment_combiner;
+    $this->validation = $validation;
   }
   
   function all() {
@@ -46,13 +53,28 @@ class CandidateRepository {
   }
     
   function save(Candidate $candidate, int $data_source_id) {
+    // Validate candidate model
+    $validation_result = $this->validation->validate($candidate);
+
+    if($validation_result !== true) {
+      throw new Exception("Cannot save candidate - $validation_result");
+    }
+    
     // Check to see if the entity find in the database already
     $existing_candidate = $this->find($candidate);
-    
-    $candidate_fragment_model = CandidateFragment::where('data_source_id', $data_source_id)
-      ->where('candidate_id', $candidate->id)
-      ->first();
-      
+    $candidate_fragment_model = CandidateFragment::where('data_source_id', $data_source_id);
+
+    if($candidate->id === null) {
+      $candidate_fragment_model = $candidate_fragment_model
+        ->where('name', $candidate->name)
+        ->where('district', $candidate->district)
+        ->first();
+    } else {
+      $candidate_fragment_model = $candidate_fragment_model
+        ->where('candidate_id', $candidate->id)
+        ->first();
+    }
+
     if($candidate_fragment_model !== null) {
       // Preserve id so that when the id gets overwritten during conversion, it can be fixed
       $fragment_id = $candidate_fragment_model->id;

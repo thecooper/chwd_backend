@@ -15,7 +15,7 @@ use App\BusinessLogic\CandidateFragmentCombiner;
 use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
 use App\BusinessLogic\Repositories\CandidateRepository;
-
+use App\BusinessLogic\Validation\CandidateValidation;
 
 class BallotCandidates extends TestCase
 {
@@ -34,7 +34,7 @@ class BallotCandidates extends TestCase
     parent::setUp();
     
     $this->election_repository = new ElectionRepository(new ElectionFragmentCombiner());
-    $this->candidate_repository = new CandidateRepository(new CandidateFragmentCombiner());
+    $this->candidate_repository = new CandidateRepository(new CandidateFragmentCombiner(), new CandidateValidation());
 
     $this->user = factory(\App\DataLayer\User::class)->create();
 

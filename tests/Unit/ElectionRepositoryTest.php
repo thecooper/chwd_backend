@@ -62,10 +62,13 @@ class ElectionRepositoryTest extends TestCase
 
     // Act
     $saved_election = $this->repo->save($election, $datasource->id);
+    $fragments = ElectionFragment::where('election_id', $saved_election->id);
 
     // Assert
     $this->assertNotNull($saved_election->id);
     $this->assertSameValues($election, $saved_election);
+    $this->assertEquals(1, $fragments->count());
+    $this->assertEquals($saved_election->id, $fragments->first()->election_id);
   }
 
   public function testCanSaveMultipleElectionFragments() {
@@ -140,6 +143,7 @@ class ElectionRepositoryTest extends TestCase
 
     // Assert
     $this->assertEquals(1, $fragments->count());
+    $this->assertEquals($saved_election->id, $fragments->first()->election_id);
   }
   
   private function assertSameValues($expected, $actual) {

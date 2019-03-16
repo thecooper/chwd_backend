@@ -55,10 +55,20 @@ class ElectionRepository {
 
     // Check to see if the entity find in the database already
     $existing_election = $this->find($entity);
-
-    $election_fragment_model = ElectionFragment::where('election_id', $entity->id)
+    $election_fragment_model = null;
+    
+    if($entity->id === null) {
+      $election_fragment_model = ElectionFragment::where('state_abbreviation', $entity->state_abbreviation)
+      ->where('primary_election_date', $entity->primary_election_date)
+      ->where('general_election_date', $entity->general_election_date)
+      ->where('runoff_election_date', $entity->runoff_election_date)
       ->where('data_source_id', $data_source_id)
       ->first();
+    } else {
+      $election_fragment_model = ElectionFragment::where('election_id', $entity->id)
+        ->where('data_source_id', $data_source_id)
+        ->first();
+    }
     
     if($election_fragment_model !== null) {
       $fragment_id = $election_fragment_model->id;
@@ -71,13 +81,11 @@ class ElectionRepository {
       $election_fragment_model = new ElectionFragment();
       $election_fragment_model->data_source_id = $data_source_id;
       ElectionDTO::convert($entity, $election_fragment_model);
-  
       // save fragment
       $election_fragment_model->save();
     }
 
     if($existing_election != null) {
-
       // combine election fragments
       $fragments = ElectionFragment::where('state_abbreviation', $entity->state_abbreviation)
         ->where('primary_election_date', $entity->primary_election_date)
@@ -100,7 +108,7 @@ class ElectionRepository {
 
       $existing_election->save();
 
-      ElectionDTO::convert($entity, $existing_election);
+      ElectionDTO::convert($existing_election, $entity);
 
       return $entity;
     } else {
