@@ -21,6 +21,7 @@ class CandidateValidation {
       $election_status === 'Withdrew' ||
       $election_status === 'Disqualified' ||
       $election_status === 'Advanced' ||
-      $election_status === 'Unknown';
+      $election_status === 'Unknown' ||
+      $election_status === 'Too Close To Call';
   }
 }

@@ -36,6 +36,30 @@ class BallotpediaDataProcessor {
     $this->district_identity_generator = $district_identity_generator;
     $this->initialized = false;
 
+    // Mapping for fields prior to 11/09
+    // $this->field_mapper->load([
+    //   new IndexMapping(0, 'state'),
+    //   new IndexMapping(1, 'name'),
+    //   new IndexMapping(2, 'first_name'),
+    //   new IndexMapping(3, 'last_name'),
+    //   new IndexMapping(4, 'ballotpedia_url'),
+    //   new IndexMapping(5, 'candidates_id'),
+    //   new IndexMapping(6, 'party_affiliation'),
+    //   new IndexMapping(7, 'race_id'),
+    //   new IndexMapping(8, 'general_election_date'),
+    //   new IndexMapping(9, 'general_runoff_election_date'),
+    //   new IndexMapping(10, 'office_district_id'),
+    //   new IndexMapping(11, 'district_name'),
+    //   new IndexMapping(12, 'district_type'),
+    //   new IndexMapping(13, 'office_level'),
+    //   new IndexMapping(14, 'office'),
+    //   new IndexMapping(15, 'is_incumbent'),
+    //   new IndexMapping(16, 'general_election_status'),
+    //   new IndexMapping(17, 'website_url'),
+    //   new IndexMapping(18, 'facebook_profile'),
+    //   new IndexMapping(19, 'twitter_handle')
+    // ]);
+
     $this->field_mapper->load([
       new IndexMapping(0, 'state'),
       new IndexMapping(1, 'name'),
@@ -45,18 +69,19 @@ class BallotpediaDataProcessor {
       new IndexMapping(5, 'candidates_id'),
       new IndexMapping(6, 'party_affiliation'),
       new IndexMapping(7, 'race_id'),
-      new IndexMapping(8, 'general_election_date'),
-      new IndexMapping(9, 'general_runoff_election_date'),
-      new IndexMapping(10, 'office_district_id'),
-      new IndexMapping(11, 'district_name'),
-      new IndexMapping(12, 'district_type'),
-      new IndexMapping(13, 'office_level'),
-      new IndexMapping(14, 'office'),
-      new IndexMapping(15, 'is_incumbent'),
-      new IndexMapping(16, 'general_election_status'),
-      new IndexMapping(17, 'website_url'),
-      new IndexMapping(18, 'facebook_profile'),
-      new IndexMapping(19, 'twitter_handle')
+      new IndexMapping(8, 'too_close_to_call'),
+      new IndexMapping(9, 'general_election_date'),
+      new IndexMapping(10, 'general_runoff_election_date'),
+      new IndexMapping(11, 'office_district_id'),
+      new IndexMapping(12, 'district_name'),
+      new IndexMapping(13, 'district_type'),
+      new IndexMapping(14, 'office_level'),
+      new IndexMapping(15, 'office'),
+      new IndexMapping(16, 'is_incumbent'),
+      new IndexMapping(17, 'general_election_status'),
+      new IndexMapping(18, 'website_url'),
+      new IndexMapping(19, 'facebook_profile'),
+      new IndexMapping(20, 'twitter_handle')
     ]);
   }
   
@@ -84,7 +109,7 @@ class BallotpediaDataProcessor {
       
       $end_candidate_processing = microtime(true);
       $timediff = ($end_candidate_processing - $start_candidate_processing) * 1000;
-      Log::channel('import')->debug("[Benchmark] Candidate Row Processing: {$timediff} milliseconds");
+      // Log::channel('import')->debug("[Benchmark] Candidate Row Processing: {$timediff} milliseconds");
     } catch (\Exception $ex) {
       // Log::channel(['import'])->warn("Unable to save candidate: {$ex->getMessage()}");
       throw new \Exception("Unable to save candidate: {$ex->getMessage()}");
@@ -149,6 +174,10 @@ class BallotpediaDataProcessor {
     CandidateLoader::load($candidate, $candidate_fields);
 
     $this->correct_candidate($candidate);
+
+    if($this->field_mapper->get_field($fields, 'too_close_to_call') === 'general') {
+      $candidate->election_status = 'Too Close To Call';
+    }
     
     $this->candidate_repository->save($candidate, $this->data_source_id);
   }

@@ -20,7 +20,8 @@ class CandidateRepository {
 
   private $fragment_combiner;
   private $validation;
-  
+  private $priorities;
+
   public function __construct(CandidateFragmentCombiner $fragment_combiner, CandidateValidation $validation) {
     if($fragment_combiner === null) {
       throw new Exception("Dependency for CandidateRepository (CandidateFragmentCombiner) is null");
@@ -32,6 +33,7 @@ class CandidateRepository {
     
     $this->fragment_combiner = $fragment_combiner;
     $this->validation = $validation;
+    $this->priorities = null;
   }
   
   function all() {
@@ -61,18 +63,18 @@ class CandidateRepository {
     }
     
     // Check to see if the entity find in the database already
-    $existing_candidate = $this->find($candidate);
+    $existing_candidate = $this->find($candidate); // DB Call
     $candidate_fragment_model = CandidateFragment::where('data_source_id', $data_source_id);
 
     if($candidate->id === null) {
       $candidate_fragment_model = $candidate_fragment_model
         ->where('name', $candidate->name)
         ->where('district', $candidate->district)
-        ->first();
+        ->first(); // DB Call
     } else {
       $candidate_fragment_model = $candidate_fragment_model
         ->where('candidate_id', $candidate->id)
-        ->first();
+        ->first(); // DB Call
     }
 
     if($candidate_fragment_model !== null) {
@@ -81,7 +83,7 @@ class CandidateRepository {
       CandidateDTO::convert($candidate, $candidate_fragment_model);
       $candidate_fragment_model->id = $fragment_id;
       
-      $candidate_fragment_model->save();
+      $candidate_fragment_model->save(); // DB Call
     } else {
       // create new candidate fragment database model
       $candidate_fragment_model = new CandidateFragment();
@@ -89,7 +91,7 @@ class CandidateRepository {
       CandidateDTO::convert($candidate, $candidate_fragment_model);
       
       // save fragment
-      $save_successful = $candidate_fragment_model->save();
+      $save_successful = $candidate_fragment_model->save(); // DB Call
     }
     
     if($existing_candidate != null) {
@@ -97,24 +99,18 @@ class CandidateRepository {
       $fragments = CandidateFragment::where('name', $candidate_fragment_model->name)
         ->where('district', $candidate_fragment_model->district)
         ->get()
-        ->toArray();
+        ->toArray(); // DB Call
 
       // TODO: Refactor this out to another repo
       // TODO: Ensure that this is being tested correctly. Logic may not be correct
-      $priorities = DataSourcePriority::where('destination_table', 'candidates')
-        ->get()
-        ->sortByDesc('priority')
-        ->toArray();
+      $priorities = $this->get_priorities(); // DB Call (Once)
         
       $candidate = $this->fragment_combiner->combine($fragments, $priorities);
       $candidate->id = $existing_candidate->id;
       
       CandidateDTO::convert($candidate, $existing_candidate);
 
-      if($existing_candidate->name === null) {
-        dd(DataSourcePriority::all());
-      }
-      $existing_candidate->save();
+      $existing_candidate->save(); // DB Call
       
       CandidateDTO::convert($existing_candidate, $candidate);
 
@@ -126,11 +122,11 @@ class CandidateRepository {
       // fill in properties from entity data passed in
       CandidateDTO::convert($candidate, $candidate_model);
       // save candidate db model
-      $candidate_model->save();
+      $candidate_model->save(); // DB Call
 
       // Save generated candidate id to candidate_fragment
       $candidate_fragment_model->candidate_id = $candidate_model->id;
-      $candidate_fragment_model->save();
+      $candidate_fragment_model->save(); // DB Call
 
       CandidateDTO::convert($candidate_model, $candidate);
 
@@ -186,5 +182,16 @@ class CandidateRepository {
     }
 
     return $candidate_array;
+  }
+
+  private function get_priorities() {
+    if($this->priorities === null) {
+      $this->priorities = DataSourcePriority::where('destination_table', 'candidates')
+      ->get()
+      ->sortByDesc('priority')
+      ->toArray();
+    }
+
+    return $this->priorities;
   }
 }
