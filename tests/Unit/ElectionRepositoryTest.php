@@ -26,6 +26,10 @@ class ElectionRepositoryTest extends TestCase
     $this->repo = new ElectionRepository($election_fragment_combiner);
   }
 
+  protected function tearDown() {
+    gc_collect_cycles();
+  }
+
   /**
    * A basic test example.
    *
@@ -144,6 +148,100 @@ class ElectionRepositoryTest extends TestCase
     // Assert
     $this->assertEquals(1, $fragments->count());
     $this->assertEquals($saved_election->id, $fragments->first()->election_id);
+  }
+
+  public function testCanGetLastElection() {
+    // Arrange
+    $elections = factory(\App\DataLayer\Election\Election::class, 3)->make();
+
+    $elections[0]->primary_election_date = null;
+    $elections[0]->general_election_date = '2018-01-01';
+    $elections[0]->runoff_election_date = null;
+    $elections[0]->state_abbreviation = 'CO';
+    $elections[0]->save();
+
+    $elections[1]->primary_election_date = null;
+    $elections[1]->general_election_date = '2017-01-01';
+    $elections[1]->runoff_election_date = null;
+    $elections[1]->state_abbreviation = 'CO';
+    $elections[1]->save();
+
+    $elections[2]->primary_election_date = null;
+    $elections[2]->general_election_date = '2018-01-01';
+    $elections[2]->runoff_election_date = '2018-02-01';
+    $elections[2]->state_abbreviation = 'CO';
+    $elections[2]->save();
+
+    $results = $this->repo->get_last_elections('CO', new \DateTime('2018-01-03'));
+
+    // Assert
+    $this->assertEquals(2, count($results));
+    $this->assertEquals($results[0]->general_election_date, '2018-01-01');
+    $this->assertEquals($results[0]->runoff_election_date, '2018-02-01');
+    $this->assertEquals($results[1]->general_election_date, '2018-01-01');
+    $this->assertEquals($results[1]->runoff_election_date, null);
+  }
+
+  public function testCanGetLastElectionReturnsEmptyArray() {
+    // Arrange
+    $elections = factory(\App\DataLayer\Election\Election::class, 2)->make();
+
+    $elections[0]->primary_election_date = null;
+    $elections[0]->general_election_date = '2019-01-01';
+    $elections[0]->runoff_election_date = null;
+    $elections[0]->state_abbreviation = 'CO';
+    $elections[0]->save();
+
+    $elections[1]->primary_election_date = null;
+    $elections[1]->general_election_date = '2019-01-01';
+    $elections[1]->runoff_election_date = '2019-02-01';
+    $elections[1]->state_abbreviation = 'CO';
+    $elections[1]->save();
+
+    $results = $this->repo->get_last_elections('CO', new \DateTime('2018-01-03'));
+
+    // Assert
+    $this->assertEquals(0, count($results));
+  }
+
+  public function testCanGetUpcomingElections() {
+    // Arrange
+    $elections = factory(\App\DataLayer\Election\Election::class, 4)->make();
+
+    $elections[0]->primary_election_date = null;
+    $elections[0]->general_election_date = '2019-01-01';
+    $elections[0]->runoff_election_date = null;
+    $elections[0]->state_abbreviation = 'CO';
+    $elections[0]->save();
+
+    $elections[1]->primary_election_date = null;
+    $elections[1]->general_election_date = '2018-01-01';
+    $elections[1]->runoff_election_date = '2018-02-01';
+    $elections[1]->state_abbreviation = 'CO';
+    $elections[1]->save();
+
+    $elections[2]->primary_election_date = null;
+    $elections[2]->general_election_date = '2019-01-01';
+    $elections[2]->runoff_election_date = '2019-02-01';
+    $elections[2]->state_abbreviation = 'CO';
+    $elections[2]->save();
+
+    $elections[3]->primary_election_date = null;
+    $elections[3]->general_election_date = '2020-01-01';
+    $elections[3]->runoff_election_date = null;
+    $elections[3]->state_abbreviation = 'CO';
+    $elections[3]->save();
+
+    $results = $this->repo->get_upcoming_elections('CO', new \DateTime('2018-01-03'));
+
+    // Assert
+    $this->assertEquals(3, count($results));
+    $this->assertEquals($results[0]->general_election_date, '2019-01-01');
+    $this->assertEquals($results[0]->runoff_election_date, '2019-02-01');
+    $this->assertEquals($results[1]->general_election_date, '2019-01-01');
+    $this->assertEquals($results[1]->runoff_election_date, null);
+    $this->assertEquals($results[2]->general_election_date, '2020-01-01');
+    $this->assertEquals($results[2]->runoff_election_date, null);
   }
   
   private function assertSameValues($expected, $actual) {

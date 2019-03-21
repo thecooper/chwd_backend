@@ -40,6 +40,10 @@ class BallotElectionTest extends TestCase
       'destination_table' => 'elections'
     ]);
   }
+
+  protected function tearDown() {
+    gc_collect_cycles();
+  }
   
   public function testGetBallotElections()
   {
@@ -58,11 +62,30 @@ class BallotElectionTest extends TestCase
       'data_source_id'=>$this->datasource->id,
       'primary_election_date'=>'2018-11-06',
       'general_election_date'=>'2018-11-07',
-      'runoff_election_date'=>'2018-11-08',
+      'runoff_election_date'=>null,
     ]), $this->datasource->id);
 
+    $election2 = $this->election_repository->save(ElectionLoader::create([
+      'name'=>'Some Other State Election',
+      'state_abbreviation'=>$ballot->state_abbreviation,
+      'data_source_id'=>$this->datasource->id,
+      'primary_election_date'=>'2050-11-06',
+      'general_election_date'=>'2050-11-07',
+      'runoff_election_date'=>null,
+    ]), $this->datasource->id);
+    
     $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([
       'election_id' => $election->id,
+      'office' => 'Senate',
+      'office_level' => 'Federal',
+      'is_incumbent' => 1,
+      'district_type' => 'Congress',
+      'district' => 'Washington DC',
+      'district_identifier' => $ballot->congressional_district,
+    ]);
+
+    $candidate2 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
+      'election_id' => $election2->id,
       'office' => 'Senate',
       'office_level' => 'Federal',
       'is_incumbent' => 1,
@@ -76,15 +99,28 @@ class BallotElectionTest extends TestCase
       ->get('/api/users/me/ballots/'.$ballot->id.'/elections');
 
     // Assert
-    $response->assertJsonCount(1);
+    $response->assertJsonCount(2);
 
-    $response->assertJson([[
-      'name'=>'Some State Election',
-      'state_abbreviation'=>$ballot->state_abbreviation,
-      'primary_election_date'=>'2018-11-06',
-      'general_election_date'=>'2018-11-07',
-      'runoff_election_date'=>'2018-11-08',
-    ]]);
+    $response->assertJson([
+      "upcoming_elections" => [
+        [
+          'name'=>'Some Other State Election',
+          'state_abbreviation'=>$ballot->state_abbreviation,
+          'primary_election_date'=>'2050-11-06',
+          'general_election_date'=>'2050-11-07',
+          'runoff_election_date'=>null,
+        ]
+      ],
+      "past_elections" => [
+        [
+          'name'=>'Some State Election',
+          'state_abbreviation'=>$ballot->state_abbreviation,
+          'primary_election_date'=>'2018-11-06',
+          'general_election_date'=>'2018-11-07',
+          'runoff_election_date'=>null,
+        ]
+      ]
+    ]);
 
     $this->assertTrue(!isset($response->candidates));
   }
@@ -146,25 +182,31 @@ class BallotElectionTest extends TestCase
       ->get('/api/users/me/ballots/'.$ballot2->id.'/elections');
 
     // Assert
-    $response1->assertJsonCount(1);
 
-    $response1->assertJson([[
-      'name'=>$election1->name,
-      'state_abbreviation'=>$election1->state_abbreviation,
-      'primary_election_date'=>$election1->primary_election_date,
-      'general_election_date'=>$election1->general_election_date,
-      'runoff_election_date'=>$election1->runoff_election_date,
-    ]]);
+    $response1->assertJson([
+      "past_elections" => [
+        [
+          'name'=>$election1->name,
+          'state_abbreviation'=>$election1->state_abbreviation,
+          'primary_election_date'=>$election1->primary_election_date,
+          'general_election_date'=>$election1->general_election_date,
+          'runoff_election_date'=>$election1->runoff_election_date,
+        ]
+      ],
+      "upcoming_elections" => []
+    ]);
 
-    $response2->assertJsonCount(1);
-
-    $response2->assertJson([[
-      'name'=>$election2->name,
-      'state_abbreviation'=>$election2->state_abbreviation,
-      'primary_election_date'=>$election2->primary_election_date,
-      'general_election_date'=>$election2->general_election_date,
-      'runoff_election_date'=>$election2->runoff_election_date,
-    ]]);
+    $response2->assertJson([
+      "past_elections" => [
+        [
+          'name'=>$election2->name,
+          'state_abbreviation'=>$election2->state_abbreviation,
+          'primary_election_date'=>$election2->primary_election_date,
+          'general_election_date'=>$election2->general_election_date,
+          'runoff_election_date'=>$election2->runoff_election_date,
+        ]
+        ]
+    ]);
   }
 
   public function testGetElectionMultiBallotWithSameElection() {
@@ -190,8 +232,8 @@ class BallotElectionTest extends TestCase
     $election2 = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some Other State Election',
       'state_abbreviation'=>$ballot2->state_abbreviation,
-      'primary_election_date'=>'2018-11-6',
-      'general_election_date'=>null,
+      'primary_election_date'=>null,
+      'general_election_date'=>'2018-11-6',
       'runoff_election_date'=>null,
       'data_source_id'=>$this->datasource->id,
       'election_id'=>null
@@ -227,24 +269,28 @@ class BallotElectionTest extends TestCase
       ->get('/api/users/me/ballots/'.$ballot2->id.'/elections');
 
     // Assert
-    $response1->assertJsonCount(1);
+    $response1->assertJson([
+      "past_elections" => [
+        [
+          'name'=>'Some State Election',
+          'state_abbreviation'=>$ballot1->state_abbreviation,
+          'primary_election_date'=>'2018-11-06',
+          'general_election_date'=>'2018-11-07',
+          'runoff_election_date'=>'2018-11-08',
+        ]
+      ]
+    ]);
 
-    $response1->assertJson([[
-      'name'=>'Some State Election',
-      'state_abbreviation'=>$ballot1->state_abbreviation,
-      'primary_election_date'=>'2018-11-06',
-      'general_election_date'=>'2018-11-07',
-      'runoff_election_date'=>'2018-11-08',
-    ]]);
-
-    $response2->assertJsonCount(1);
-
-    $response2->assertJson([[
-      'name'=>'Some Other State Election',
-      'state_abbreviation'=>$ballot2->state_abbreviation,
-      'primary_election_date'=>'2018-11-06',
-      'general_election_date'=>null,
-      'runoff_election_date'=>null,
-    ]]);
+    $response2->assertJson([
+      "past_elections" => [
+        [
+          'name'=>'Some Other State Election',
+          'state_abbreviation'=>$ballot2->state_abbreviation,
+          'primary_election_date'=>null,
+          'general_election_date'=>'2018-11-06',
+          'runoff_election_date'=>null,
+        ]
+      ]
+    ]);
   }
 }
