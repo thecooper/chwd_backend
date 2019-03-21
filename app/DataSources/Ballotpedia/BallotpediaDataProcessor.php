@@ -37,29 +37,6 @@ class BallotpediaDataProcessor {
     $this->initialized = false;
 
     // Mapping for fields prior to 11/09
-    // $this->field_mapper->load([
-    //   new IndexMapping(0, 'state'),
-    //   new IndexMapping(1, 'name'),
-    //   new IndexMapping(2, 'first_name'),
-    //   new IndexMapping(3, 'last_name'),
-    //   new IndexMapping(4, 'ballotpedia_url'),
-    //   new IndexMapping(5, 'candidates_id'),
-    //   new IndexMapping(6, 'party_affiliation'),
-    //   new IndexMapping(7, 'race_id'),
-    //   new IndexMapping(8, 'general_election_date'),
-    //   new IndexMapping(9, 'general_runoff_election_date'),
-    //   new IndexMapping(10, 'office_district_id'),
-    //   new IndexMapping(11, 'district_name'),
-    //   new IndexMapping(12, 'district_type'),
-    //   new IndexMapping(13, 'office_level'),
-    //   new IndexMapping(14, 'office'),
-    //   new IndexMapping(15, 'is_incumbent'),
-    //   new IndexMapping(16, 'general_election_status'),
-    //   new IndexMapping(17, 'website_url'),
-    //   new IndexMapping(18, 'facebook_profile'),
-    //   new IndexMapping(19, 'twitter_handle')
-    // ]);
-
     $this->field_mapper->load([
       new IndexMapping(0, 'state'),
       new IndexMapping(1, 'name'),
@@ -69,20 +46,43 @@ class BallotpediaDataProcessor {
       new IndexMapping(5, 'candidates_id'),
       new IndexMapping(6, 'party_affiliation'),
       new IndexMapping(7, 'race_id'),
-      new IndexMapping(8, 'too_close_to_call'),
-      new IndexMapping(9, 'general_election_date'),
-      new IndexMapping(10, 'general_runoff_election_date'),
-      new IndexMapping(11, 'office_district_id'),
-      new IndexMapping(12, 'district_name'),
-      new IndexMapping(13, 'district_type'),
-      new IndexMapping(14, 'office_level'),
-      new IndexMapping(15, 'office'),
-      new IndexMapping(16, 'is_incumbent'),
-      new IndexMapping(17, 'general_election_status'),
-      new IndexMapping(18, 'website_url'),
-      new IndexMapping(19, 'facebook_profile'),
-      new IndexMapping(20, 'twitter_handle')
+      new IndexMapping(8, 'general_election_date'),
+      new IndexMapping(9, 'general_runoff_election_date'),
+      new IndexMapping(10, 'office_district_id'),
+      new IndexMapping(11, 'district_name'),
+      new IndexMapping(12, 'district_type'),
+      new IndexMapping(13, 'office_level'),
+      new IndexMapping(14, 'office'),
+      new IndexMapping(15, 'is_incumbent'),
+      new IndexMapping(16, 'general_election_status'),
+      new IndexMapping(17, 'website_url'),
+      new IndexMapping(18, 'facebook_profile'),
+      new IndexMapping(19, 'twitter_handle')
     ]);
+
+    // $this->field_mapper->load([
+    //   new IndexMapping(0, 'state'),
+    //   new IndexMapping(1, 'name'),
+    //   new IndexMapping(2, 'first_name'),
+    //   new IndexMapping(3, 'last_name'),
+    //   new IndexMapping(4, 'ballotpedia_url'),
+    //   new IndexMapping(5, 'candidates_id'),
+    //   new IndexMapping(6, 'party_affiliation'),
+    //   new IndexMapping(7, 'race_id'),
+    //   new IndexMapping(8, 'too_close_to_call'),
+    //   new IndexMapping(9, 'general_election_date'),
+    //   new IndexMapping(10, 'general_runoff_election_date'),
+    //   new IndexMapping(11, 'office_district_id'),
+    //   new IndexMapping(12, 'district_name'),
+    //   new IndexMapping(13, 'district_type'),
+    //   new IndexMapping(14, 'office_level'),
+    //   new IndexMapping(15, 'office'),
+    //   new IndexMapping(16, 'is_incumbent'),
+    //   new IndexMapping(17, 'general_election_status'),
+    //   new IndexMapping(18, 'website_url'),
+    //   new IndexMapping(19, 'facebook_profile'),
+    //   new IndexMapping(20, 'twitter_handle')
+    // ]);
   }
   
   public function initialize(int $data_source_id) {

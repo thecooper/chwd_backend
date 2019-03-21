@@ -51,7 +51,7 @@ class BallotCandidateManager {
     $election_candidates = array();
 
     foreach($elections as $election) {
-        $election_candidates = array_merge($election_candidates, $election->candidates);
+      $election_candidates = array_merge($election_candidates, $election->candidates);
     }
 
     return $election_candidates;

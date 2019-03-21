@@ -14,6 +14,7 @@ use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\Models\Datasource;
 
 use \Exception;
+use \DateTime;
 
 class ElectionRepository {
 
@@ -142,6 +143,40 @@ class ElectionRepository {
       ->first();
 
     return $election_model;
+  }
+
+  function get_last_elections(string $state_abbreviation, DateTime $date) {
+    $last_elections = ElectionModel::where('state_abbreviation', $state_abbreviation)
+      ->get()
+      ->filter(function($election) use ($date) {
+        // Filter out upcoming elections
+        $general_election_date = new DateTime($election->general_election_date);
+        return $general_election_date->getTimestamp() < $date->getTimestamp();
+      })
+      ->sortByDesc('general_election_date')
+      ->sortByDesc('runoff_election_date')
+      ->groupBy('general_election_date')
+      ->first();
+    if ($last_elections === null) {
+      return [];
+    } else {
+      $last_elections = $last_elections->values();
+      return $this->transferAllModels($last_elections, true);
+    }
+  }
+
+  function get_upcoming_elections(string $state_abbreviation, DateTime $date) {
+    $upcoming_elections = ElectionModel::where('state_abbreviation', $state_abbreviation)
+      ->get()
+      ->filter(function($election) use ($date) {
+        // Filter out past elections
+        $general_election_date = new DateTime($election->general_election_date);
+        return $general_election_date->getTimestamp() > $date->getTimestamp();
+      })
+      ->sortBy('general_election_date')
+      ->sortByDesc('runoff_election_date');
+    
+    return $this->transferAllModels($upcoming_elections, true);
   }
 
   private function transferModel($election_model, $include_candidates = false) {

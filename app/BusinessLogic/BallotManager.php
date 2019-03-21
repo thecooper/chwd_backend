@@ -12,6 +12,8 @@ use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\Repositories\UserBallotCandidateRepository;
 use App\BusinessLogic\Repositories\TweetRepository;
 
+use \DateTime;
+
 class BallotManager {
 
   private $ballot_election_manager;
@@ -43,19 +45,15 @@ class BallotManager {
   }
   
   public function get_elections_from_ballot(Ballot $ballot) {
-    // get all elections and candidates for the ballot passed in
-    list($elections, $elections_candidates) = $this->get_ballot_elections_and_candidates($ballot);
+    $upcoming_elections = $this->remove_candidates_from_elections($this->get_upcoming_elections_by_ballot($ballot));
+    $past_elections = $this->remove_candidates_from_elections($this->get_last_elections_by_ballot($ballot));
+
+    $elections = [
+      "upcoming_elections" => $upcoming_elections,
+      "past_elections" => $past_elections
+    ];
     
-    $filtered_elections_candidates = $this->ballot_candidate_filter->filter_candidates_by_ballot_location($elections_candidates, $ballot);
-
-    $relevant_elections = $this->ballot_election_manager->filter_relevant_elections($elections, $filtered_elections_candidates);
-
-    // Remove candidates 
-    foreach($relevant_elections as $election) {
-        unset($election->candidates);
-    }
-
-    return $relevant_elections;
+    return $elections;
   }
 
   public function get_candidates_from_ballot(Ballot $ballot) {
@@ -99,6 +97,40 @@ class BallotManager {
     $tweets = $this->tweet_repository->get_tweets_by_handles($candidates_twitter_handles);
 
     return $tweets;
+  }
+
+  public function get_last_elections_by_ballot(Ballot $ballot) {
+    $date = new DateTime();
+    $elections = $this->ballot_election_manager->get_last_elections($ballot->state_abbreviation, $date);
+    $candidates = $this->ballot_candidate_manager->get_candidates_from_elections($elections);
+
+    $filtered_elections_candidates = $this->ballot_candidate_filter->filter_candidates_by_ballot_location($candidates, $ballot);
+    // $filtered_elections_candidates = $this->ballot_candidate_filter->get_winner_candidates($filtered_elections_candidates);
+
+    $relevant_elections = $this->ballot_election_manager->filter_relevant_elections($elections, $filtered_elections_candidates);
+    
+    return $relevant_elections;
+  }
+
+  public function get_upcoming_elections_by_ballot(Ballot $ballot) {
+    $date = new DateTime();
+    $elections = $this->ballot_election_manager->get_upcoming_elections($ballot->state_abbreviation, $date);
+    $candidates = $this->ballot_candidate_manager->get_candidates_from_elections($elections);
+    
+    $filtered_elections_candidates = $this->ballot_candidate_filter->filter_candidates_by_ballot_location($candidates, $ballot);
+    // $filtered_elections_candidates = $this->ballot_candidate_filter->get_winner_candidates($filtered_elections_candidates);
+
+    $relevant_elections = $this->ballot_election_manager->filter_relevant_elections($elections, $filtered_elections_candidates);
+
+    return $relevant_elections;
+  }
+
+  private function remove_candidates_from_elections(array $elections) {
+    foreach($elections as $election) {
+      unset($election->candidates);
+    }
+
+    return $elections;
   }
   
   private function get_ballot_elections_and_candidates(Ballot $ballot) {

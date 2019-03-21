@@ -6,6 +6,8 @@ use App\DataLayer\Election\ConsolidatedElection;
 use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\Repositories\CandidateRepository;
 
+use \DateTime;
+
 class BallotElectionManager {
   
   private $election_repository;
@@ -20,6 +22,16 @@ class BallotElectionManager {
    */
   public function get_elections_by_state($state_abbreviation) {
     $elections = $this->election_repository->allByStateWithCandidates($state_abbreviation);
+    return $elections;
+  }
+
+  public function get_last_elections(string $state_abbreviation, DateTime $date) {
+    $elections = $this->election_repository->get_last_elections($state_abbreviation, $date);
+    return $elections;
+  }
+
+  public function get_upcoming_elections(string $state_abbreviation, DateTime $date) {
+    $elections = $this->election_repository->get_upcoming_elections($state_abbreviation, $date);
     return $elections;
   }
 

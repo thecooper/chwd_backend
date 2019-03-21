@@ -18,7 +18,7 @@ class AddCandidateIndexes extends Migration
         });
 
         Schema::table('candidate_fragments', function (Blueprint $table) {
-          $table->unique(['name', 'district'], 'candidate_fragments_name_district');
+          $table->unique(['name', 'district', 'data_source_id'], 'candidate_fragments_name_district');
         });
     }
 
