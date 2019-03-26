@@ -150,13 +150,15 @@ class BallotManager {
    */
   public function get_winners_of_last_elections(Ballot $ballot) {
     $elections = $this->get_last_elections_by_ballot($ballot);
+
     $election_ids = collect($elections)->pluck('id')->toArray();
     
     $candidates = $this->candidate_repository->get_candidates_by_election_ids($election_ids);
-    
-    return array_filter($candidates, function($candidate) {
+    $representatives = array_filter($candidates, function($candidate) {
       return $candidate->election_status === 'Won';
     });
+
+    return $representatives;
   }
 
   /**

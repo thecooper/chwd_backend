@@ -304,95 +304,101 @@ class BallotCandidatesTest extends TestCase
       $this->assertEquals($candidate_selected, false);
   }
 
-  // public function testGetPreviousElectionWinners()
-  // {
-  //   // Arrange
-  //     $this->election->primary_election_date = '2018-11-5';
-  //     $this->election->general_election_date = '2018-11-6';
-  //     $this->election->runoff_election_date = '2018-11-7';
+  public function testGetPreviousElectionWinners()
+  {
+    // Arrange
+    $election = $this->election_repository->save(ElectionLoader::create([
+      'name' => 'Some State Election',
+      'state_abbreviation' => $this->ballot->state_abbreviation,
+      'primary_election_date' => '2018-11-6',
+      'general_election_date' => '2018-11-7',
+      'runoff_election_date' => '2018-11-8',
+      'data_source_id' => $this->datasource->id,
+      'election_id' => null,
+    ]), $this->datasource->id);
       
-  //     $candidate1 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
-  //       'election_id' => $this->election->id,
-  //       'election_status' => 'Lost',
-  //       'office' => 'Senate',
-  //       'office_level' => 'Federal',
-  //       'district_type' => 'Congress',
-  //       'district' => 'Washington DC',
-  //       'district_identifier' => $this->ballot->congressional_district
-  //     ]);
+    $candidate1 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
+      'election_id' => $election->id,
+      'election_status' => 'Lost',
+      'office' => 'Senate',
+      'office_level' => 'Federal',
+      'district_type' => 'Congress',
+      'district' => 'Washington DC',
+      'district_identifier' => $this->ballot->congressional_district
+    ]);
 
-  //     $candidate2 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
-  //       'election_id' => $this->election->id,
-  //       'election_status' => 'Won',
-  //       'office' => 'Senate',
-  //       'office_level' => 'State',
-  //       'district_type' => 'State Legislative (Upper)',
-  //       'district' => 'Washington DC',
-  //       'district_identifier' => $this->ballot->state_legislative_district
-  //     ]);
+    $candidate2 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
+      'election_id' => $election->id,
+      'election_status' => 'Won',
+      'office' => 'Senate',
+      'office_level' => 'State',
+      'district_type' => 'State Legislative (Upper)',
+      'district' => 'Washington DC',
+      'district_identifier' => $this->ballot->state_legislative_district
+    ]);
 
-  //     $candidate3 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
-  //       'election_id' => $this->election->id,
-  //       'election_status' => 'Won',
-  //       'office' => 'Representitive',
-  //       'office_level' => 'State',
-  //       'district_type' => 'State Legislative (Lower)',
-  //       'district' => 'Washington DC',
-  //       'district_identifier' => $this->ballot->state_house_district
-  //     ]);
+    $candidate3 = factory(\App\DataLayer\Candidate\Candidate::class)->create([
+      'election_id' => $election->id,
+      'election_status' => 'Won',
+      'office' => 'Representitive',
+      'office_level' => 'State',
+      'district_type' => 'State Legislative (Lower)',
+      'district' => 'Washington DC',
+      'district_identifier' => $this->ballot->state_house_district
+    ]);
 
-  //     // Act
-  //     $response = $this->actingAs($this->user)
-  //       ->get("/api/users/me/ballots/{$this->ballot->id}/representatives");
+    // Act
+    $response = $this->actingAs($this->user)
+      ->get("/api/users/me/ballots/{$this->ballot->id}/representatives");
 
-  //     // Assert
-  //     $response->assertOk();
+    // Assert
+    $response->assertOk();
 
-  //     $response->assertJsonCount(2);
+    $response->assertJsonCount(2);
 
-  //     $response->assertJson([
-  //       'State Legislative (Upper)' => [
-  //         'Senate' => [
-  //           [
-  //             'name' => $candidate2->name,
-  //             'election_id' => $this->election->id,
-  //             'party_affiliation' => $candidate2->party_affiliation,
-  //             'election_status' => $candidate2->election_status,
-  //             'office' => $candidate2->office,
-  //             'office_level' => $candidate2->office_level,
-  //             'is_incumbent' => $candidate2->is_incumbent,
-  //             'district_type' => $candidate2->district_type,
-  //             'district' => $candidate2->district,
-  //             'district_identifier' => $candidate2->district_identifier,
-  //             'ballotpedia_url' => $candidate2->ballotpedia_url,
-  //             'website_url' => $candidate2->website_url,
-  //             'donate_url' => $candidate2->donate_url,
-  //             'facebook_profile' => $candidate2->facebook_profile,
-  //             'twitter_handle' => $candidate2->twitter_handle
-  //           ],
-  //         ],
-  //       ],
-  //       'State Legislative (Lower)' => [
-  //         'Representitive' => [
-  //           [
-  //             'name' => $candidate3->name,
-  //             'election_id' => $this->election->id,
-  //             'party_affiliation' => $candidate3->party_affiliation,
-  //             'election_status' => $candidate3->election_status,
-  //             'office' => $candidate3->office,
-  //             'office_level' => $candidate3->office_level,
-  //             'is_incumbent' => $candidate3->is_incumbent,
-  //             'district_type' => $candidate3->district_type,
-  //             'district' => $candidate3->district,
-  //             'district_identifier' => $candidate3->district_identifier,
-  //             'ballotpedia_url' => $candidate3->ballotpedia_url,
-  //             'website_url' => $candidate3->website_url,
-  //             'donate_url' => $candidate3->donate_url,
-  //             'facebook_profile' => $candidate3->facebook_profile,
-  //             'twitter_handle' => $candidate3->twitter_handle,
-  //           ],
-  //         ],
-  //       ],
-  //     ]);
-  // }
+    $response->assertJson([
+      'State Legislative (Upper)' => [
+        'Senate' => [
+          [
+            'name' => $candidate2->name,
+            'election_id' => $election->id,
+            'party_affiliation' => $candidate2->party_affiliation,
+            'election_status' => $candidate2->election_status,
+            'office' => $candidate2->office,
+            'office_level' => $candidate2->office_level,
+            'is_incumbent' => $candidate2->is_incumbent,
+            'district_type' => $candidate2->district_type,
+            'district' => $candidate2->district,
+            'district_identifier' => $candidate2->district_identifier,
+            'ballotpedia_url' => $candidate2->ballotpedia_url,
+            'website_url' => $candidate2->website_url,
+            'donate_url' => $candidate2->donate_url,
+            'facebook_profile' => $candidate2->facebook_profile,
+            'twitter_handle' => $candidate2->twitter_handle
+          ],
+        ],
+      ],
+      'State Legislative (Lower)' => [
+        'Representitive' => [
+          [
+            'name' => $candidate3->name,
+            'election_id' => $election->id,
+            'party_affiliation' => $candidate3->party_affiliation,
+            'election_status' => $candidate3->election_status,
+            'office' => $candidate3->office,
+            'office_level' => $candidate3->office_level,
+            'is_incumbent' => $candidate3->is_incumbent,
+            'district_type' => $candidate3->district_type,
+            'district' => $candidate3->district,
+            'district_identifier' => $candidate3->district_identifier,
+            'ballotpedia_url' => $candidate3->ballotpedia_url,
+            'website_url' => $candidate3->website_url,
+            'donate_url' => $candidate3->donate_url,
+            'facebook_profile' => $candidate3->facebook_profile,
+            'twitter_handle' => $candidate3->twitter_handle,
+          ],
+        ],
+      ],
+    ]);
+  }
 }
