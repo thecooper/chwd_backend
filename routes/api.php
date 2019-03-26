@@ -25,7 +25,6 @@ use App\DataSources\NewsAPIDataSource;
 use App\DataSources\TwitterDataSource;
 use App\Jobs\SelectElectionToProcessNews;
 use App\News;
-// Route::get('import', 'ImportController@show'); // Importing now done through cli: 'php artisan import'
 
 Route::get('repo_test', function(TweetRepository $repo) {
   return response()->json($repo->get_tweets_by_handles(['AOC', 'BetoORourke']), 200);
@@ -46,7 +45,7 @@ Route::middleware('auth.basic')->group(function () {
         
         Route::resource('ballots', 'BallotsController')->except('update');
 
-        Route::resource('ballots/{ballot_id}/candidates', 'BallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot_id');
+        Route::resource('ballots/{ballot}/candidates', 'BallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot');
 
         Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, Ballot $ballot, Candidate $candidate) {
             return response()->json(
@@ -67,6 +66,10 @@ Route::middleware('auth.basic')->group(function () {
 
         Route::resource('ballots/{ballot}/elections', 'BallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
 
+        Route::resource('ballots/{ballot}/representatives', 'BallotElectionWinnersController')
+          ->only('index')
+          ->middleware('ballot-valid-user:ballot');
+        
         Route::get('ballots/{ballot}/news', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
             $news_articles = $ballot_manager
               ->get_news_from_ballot($ballot)

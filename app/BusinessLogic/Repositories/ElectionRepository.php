@@ -161,7 +161,7 @@ class ElectionRepository {
       return [];
     } else {
       $last_elections = $last_elections->values();
-      return $this->transferAllModels($last_elections, true);
+      return $this->transferAllModels($last_elections);
     }
   }
 
@@ -176,7 +176,7 @@ class ElectionRepository {
       ->sortBy('general_election_date')
       ->sortByDesc('runoff_election_date');
     
-    return $this->transferAllModels($upcoming_elections, true);
+    return $this->transferAllModels($upcoming_elections);
   }
 
   private function transferModel($election_model, $include_candidates = false) {

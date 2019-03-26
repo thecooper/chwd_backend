@@ -120,14 +120,4 @@ class BallotCandidateFilter {
           })
           ->toArray();
   }
-
-  /**
-   * get_winner_candidates
-   *
-   * @param Candidate[] $candidates
-   * @return Candidate[]
-   */
-  public function get_winner_candidates(array $candidates) {
-    return collect($candidates)->where('election_status', 'Won')->toArray();
-  }
 }

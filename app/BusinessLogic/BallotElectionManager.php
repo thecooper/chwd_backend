@@ -25,16 +25,6 @@ class BallotElectionManager {
     return $elections;
   }
 
-  public function get_last_elections(string $state_abbreviation, DateTime $date) {
-    $elections = $this->election_repository->get_last_elections($state_abbreviation, $date);
-    return $elections;
-  }
-
-  public function get_upcoming_elections(string $state_abbreviation, DateTime $date) {
-    $elections = $this->election_repository->get_upcoming_elections($state_abbreviation, $date);
-    return $elections;
-  }
-
   /**
    * filter_relevant_elections
    *

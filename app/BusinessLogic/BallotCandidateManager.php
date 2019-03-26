@@ -42,22 +42,6 @@ class BallotCandidateManager {
   }
 
   /**
-   * get_candidates_from_elections
-   *
-   * @param Elections[] $elections
-   * @return Candidate[]
-   */
-  public function get_candidates_from_elections($elections) {
-    $election_candidates = array();
-
-    foreach($elections as $election) {
-      $election_candidates = array_merge($election_candidates, $election->candidates);
-    }
-
-    return $election_candidates;
-  }
-
-  /**
    * populate_selected_candidates
    *
    * @param array $candidates

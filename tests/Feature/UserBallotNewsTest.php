@@ -55,9 +55,9 @@ class BallotNews extends TestCase
     $election = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some State Election',
       'state_abbreviation'=>$ballot->state_abbreviation,
-      'primary_election_date'=>'2018-11-6',
-      'general_election_date'=>'2018-11-7',
-      'runoff_election_date'=>'2018-11-8',
+      'primary_election_date'=>'2020-11-6',
+      'general_election_date'=>'2020-11-7',
+      'runoff_election_date'=>'2020-11-8',
       'election_id'=>null
     ]), $this->datasource->id);
 
@@ -139,17 +139,17 @@ class BallotNews extends TestCase
     $election = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some State Election',
       'state_abbreviation'=>$ballot->state_abbreviation,
-      'primary_election_date'=>'2018-11-6',
-      'general_election_date'=>'2018-11-7',
-      'runoff_election_date'=>'2018-11-8',
+      'primary_election_date'=>'2020-11-6',
+      'general_election_date'=>'2020-11-7',
+      'runoff_election_date'=>'2020-11-8',
     ]), $this->datasource->id);
 
     $election2 = $this->election_repository->save(ElectionLoader::create([
       'name'=>'Some Other State Election',
       'state_abbreviation'=>$ballot2->state_abbreviation,
-      'primary_election_date'=>'2018-11-6',
-      'general_election_date'=>'2018-11-7',
-      'runoff_election_date'=>'2018-11-8',
+      'primary_election_date'=>'2020-11-6',
+      'general_election_date'=>'2020-11-7',
+      'runoff_election_date'=>'2020-11-8',
     ]), $this->datasource->id);
 
     $candidate = factory(\App\DataLayer\Candidate\Candidate::class)->create([

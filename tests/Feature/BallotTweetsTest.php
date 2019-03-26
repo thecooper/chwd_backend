@@ -57,9 +57,9 @@ class BallotTweetsTest extends TestCase
       $this->election = $this->election_repository->save(ElectionLoader::create([
         'name' => 'Some State Election',
         'state_abbreviation' => $this->ballot->state_abbreviation,
-        'primary_election_date' => '2018-11-6',
-        'general_election_date' => '2018-11-7',
-        'runoff_election_date' => '2018-11-8',
+        'primary_election_date' => '2020-11-6',
+        'general_election_date' => '2020-11-7',
+        'runoff_election_date' => '2020-11-8',
         'data_source_id' => $this->datasource->id,
         'election_id' => null,
       ]), $this->datasource->id);

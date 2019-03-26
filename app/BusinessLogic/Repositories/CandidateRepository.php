@@ -53,7 +53,23 @@ class CandidateRepository {
     $candidate = $this->transferModel($candidate_model);
     return $candidate;
   }
-    
+  
+  /**
+   * get_candidates_by_election_id
+   *
+   * @param integer $election_id
+   * @return Candidate[]
+   */  
+  function get_candidates_by_election_id(int $election_id) {
+    $candidates = CandidateModel::where('election_id', $election_id)->get();
+    return $this->transferAllModels($candidates);
+  }
+
+  function get_candidates_by_election_ids(array $election_ids) {
+    $candidates = CandidateModel::whereIn('election_id', $election_ids)->get();
+    return $this->transferAllModels($candidates);
+  }
+  
   function save(Candidate $candidate, int $data_source_id) {
     // Validate candidate model
     $validation_result = $this->validation->validate($candidate);

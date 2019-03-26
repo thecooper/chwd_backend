@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
 
+use App\DataLayer\UserBallotCandidate;
+
 use App\DataLayer\Ballot\Ballot;
 use App\BusinessLogic\BallotManager;
 use App\BusinessLogic\Repositories\CandidateRepository;
@@ -25,9 +27,9 @@ class BallotCandidatesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, Ballot $ballot_id)
+    public function index(Request $request, Ballot $ballot)
     {   
-        $candidates = collect($this->ballot_manager->get_candidates_from_ballot($ballot_id))
+        $candidates = collect($this->ballot_manager->get_candidates_from_ballot($ballot, 'upcoming'))
             ->groupBy('district_type')
             ->map(function($value) {
                 return $value->groupBy('office');
@@ -66,9 +68,8 @@ class BallotCandidatesController extends Controller
      * @param  int $id - ID of the candidate to select
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $ballot_id, $id)
+    public function update(Request $request, Ballot $ballot, $id)
     {
-      $ballot = Ballot::find($ballot_id);
       $candidate = $this->candidate_repository->get($id);
       
       if($candidate == null) {
@@ -86,23 +87,22 @@ class BallotCandidatesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, $ballot_id, $id)
+    public function destroy(Request $request, Ballot $ballot, $id)
     {
-        $existing_ballot_candidate_link_query = $existing_ballot_candidate_link = $this->get_existing_user_ballot_candidate_link($ballot_id, $id);
-        $existing_ballot_candidate_link = $existing_ballot_candidate_link_query->first();
+      $existing_ballot_candidate_link_query = $this->get_existing_user_ballot_candidate_link($ballot, $id);
+      $existing_ballot_candidate_link = $existing_ballot_candidate_link_query->first();
+      
+      if($existing_ballot_candidate_link == null) {
+          return response()->json('specified link does not exist', 404);
+      }
 
-        if($existing_ballot_candidate_link == null) {
-            return response()->json('specified link does not exist', 404);
-        }
+      $existing_ballot_candidate_link_query->delete();
 
-        $existing_ballot_candidate_link_query->delete();
-
-        return response()->json(null, 202);
+      return response()->json(null, 202);
     }
 
-    private function get_existing_user_ballot_candidate_link($ballot_id, $candidate_id) {
-        return DB::table('user_ballot_candidates')
-            ->where('user_ballot_id', $ballot_id)
+    private function get_existing_user_ballot_candidate_link(Ballot $ballot, $candidate_id) {
+        return UserBallotCandidate::where('user_ballot_id', $ballot->id)
             ->where('candidate_id', $candidate_id);
     }
 }

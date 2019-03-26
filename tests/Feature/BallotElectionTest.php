@@ -205,7 +205,7 @@ class BallotElectionTest extends TestCase
           'general_election_date'=>$election2->general_election_date,
           'runoff_election_date'=>$election2->runoff_election_date,
         ]
-        ]
+      ]
     ]);
   }
 
