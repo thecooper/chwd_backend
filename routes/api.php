@@ -45,50 +45,52 @@ Route::middleware('auth.basic')->group(function () {
         
         Route::resource('ballots', 'BallotsController')->except('update');
 
-        Route::resource('ballots/{ballot}/candidates', 'BallotCandidatesController')->except('store', 'show')->middleware('ballot-valid-user:ballot');
-
-        Route::get('ballots/{ballot}/candidates/{candidate}/news', function(Request $request, Ballot $ballot, Candidate $candidate) {
-            return response()->json(
-              $candidate
-                ->news
-                ->sortByDesc('publish_date')
+        Route::prefix('ballots/{ballot}')->group(function () {
+          Route::middleware('ballot-valid-user:ballot')->group(function () {
+            Route::resource('candidates', 'BallotCandidatesController')->except('store', 'show');
+    
+            Route::get('candidates/{candidate}/news', function(Request $request, Ballot $ballot, Candidate $candidate) {
+                return response()->json(
+                  $candidate
+                    ->news
+                    ->sortByDesc('publish_date')
+                    ->flatten()
+                    ->take(10)
+                    ->map(function($news, $key) use ($candidate) {
+                      $news->consolidated_candidate = new stdClass();
+                      $news->consolidated_candidate->candidate_id = $candidate->id;
+                      $news->consolidated_candidate->office = $candidate->office;
+                      $news->consolidated_candidate->name = $candidate->name;
+                      return $news;
+                    })
+                    , 200);
+            });
+    
+            Route::resource('elections', 'BallotElectionsController')->only('index');
+    
+            Route::resource('representatives', 'BallotElectionWinnersController')->only('index');
+            
+            Route::get('news', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
+                $news_articles = $ballot_manager
+                  ->get_news_from_ballot($ballot)
+                  ->sortByDesc('publish_date')
+                  ->flatten()
+                  ->take(20);
+    
+                return response()->json($news_articles, 200);
+            });
+    
+            Route::get('tweets', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
+              $news_articles = collect($ballot_manager
+                ->get_tweets_from_ballot($ballot))
+                ->sortByDesc('created_at')
                 ->flatten()
-                ->take(10)
-                ->map(function($news, $key) use ($candidate) {
-                  $news->consolidated_candidate = new stdClass();
-                  $news->consolidated_candidate->candidate_id = $candidate->id;
-                  $news->consolidated_candidate->office = $candidate->office;
-                  $news->consolidated_candidate->name = $candidate->name;
-                  return $news;
-                })
-                , 200);
-        })->middleware('ballot-valid-user:ballot');
-
-        Route::resource('ballots/{ballot}/elections', 'BallotElectionsController')->only('index')->middleware('ballot-valid-user:ballot');
-
-        Route::resource('ballots/{ballot}/representatives', 'BallotElectionWinnersController')
-          ->only('index')
-          ->middleware('ballot-valid-user:ballot');
-        
-        Route::get('ballots/{ballot}/news', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
-            $news_articles = $ballot_manager
-              ->get_news_from_ballot($ballot)
-              ->sortByDesc('publish_date')
-              ->flatten()
-              ->take(20);
-
-            return response()->json($news_articles, 200);
-        })->middleware('ballot-valid-user:ballot');
-
-        Route::get('ballots/{ballot}/tweets', function(Request $request, BallotManager $ballot_manager, Ballot $ballot) {
-          $news_articles = collect($ballot_manager
-            ->get_tweets_from_ballot($ballot))
-            ->sortByDesc('created_at')
-            ->flatten()
-            ->take(100);
-
-          return response()->json($news_articles, 200);
-      })->middleware('ballot-valid-user:ballot');
+                ->take(100);
+    
+              return response()->json($news_articles, 200);
+            });
+          });
+        });
     });
   });
   
