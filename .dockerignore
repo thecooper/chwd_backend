@@ -2,3 +2,6 @@ node_modules
 documentation
 vendor
 Dockerfile
+.env
+.env.staging
+.env.example
