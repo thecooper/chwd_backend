@@ -45,8 +45,8 @@ class import extends Command
     public function handle(BallotpediaSource $ballotpedia_source)
     {
       $config = new FileDataSourceConfig();
-      $config->input_directory = env('BALLOTPEDIA.IMPORT_DIR');
-      $config->import_limit = env('BALLOTPEDIA.IMPORT_LIMIT', -1);
+      $config->input_directory = env('BALLOTPEDIA_IMPORT_DIR');
+      $config->import_limit = env('BALLOTPEDIA_IMPORT_LIMIT', -1);
       
       try {
         $import_result = $ballotpedia_source->import($config);

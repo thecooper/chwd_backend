@@ -38,8 +38,8 @@ class SelectCandidatesToProcessNews implements ShouldQueue
     public function handle(NewsAPIDataSource $news_data_source)
     {
         $current_date = new DateTime();
-        $import_count_per_day = env("ELECTION_NEWS.IMPORT_COUNT_PER_DAY", 0);
-        $import_dry_run = (boolean)env("ELECTION_NEWS.DRY_RUN", false);
+        $import_count_per_day = env("ELECTION_NEWS_IMPORT_COUNT_PER_DAY", 0);
+        $import_dry_run = (boolean)env("ELECTION_NEWS_DRY_RUN", false);
 
         $import_count = 0;
         $a_week_ago = new DateInterval("P7D");
