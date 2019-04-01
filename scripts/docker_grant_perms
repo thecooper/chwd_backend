@@ -1,0 +1,10 @@
+#! /bin/bash
+
+export IP_ADDRESS=$(docker inspect chwd_db_1 | grep -o -m 1 -E '"IPAddress":\s\"(\d+\.\d+\.\d+\.\d+)"' | cut -d ' ' -f2 | cut -d '"' -f2);
+
+if [ "$IP_ADDRESS" == "" ]; then
+  echo "Could not get IP Address for container with name chwd_db_1";
+  return 1;
+fi
+
+docker exec chwd_db_1 mysql -h "$IP_ADDRESS" -u root -p'$ymph0nic' --execute "GRANT ALL PRIVILEGES ON chwd.* TO 'root'@'localhost'";

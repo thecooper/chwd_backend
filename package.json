@@ -8,6 +8,13 @@
         "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
         "prod": "npm run production",
         "start": "php artisan serve",
+        "build:docker": "docker build -t chwd_back .",
+        "build:docker:db": "docker build -t chwd_db -f Dockerfile.mysql ./docker",
+        "start:docker": "docker run -p 8000:80 --name chwd_back_1 chwd_back",
+        "start:docker:db": "docker run -d -p 3306:3306 -p 33060:33060 -e MYSQL_DATABASE=chwd -e MYSQL_USER=chwd -e MYSQL_PASSWORD=letmein -e MYSQL_ROOT_PASSWORD='$ymph0nic' --name chwd_db_1 chwd_db && ./scripts/docker_grant_perms",
+        "terminate:docker": "docker stop chwd_back_1 && docker rm chwd_back_1",
+        "terminate:docker:db": "docker stop chwd_db_1 && docker rm chwd_db_1",
+        "start:docker:terminal": "docker exec -it chwd_back_1 sh",
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
         "test": "php vendor/phpunit/phpunit/phpunit",
         "seed": "php artisan db:seed && php artisan command:import"

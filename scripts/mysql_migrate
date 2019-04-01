@@ -1,0 +1,4 @@
+#! /bin/bash
+
+docker exec -d chwd_back_1 php artisan migrate;
+docker exec -d chwd_back_1 php artisan db:seed;
