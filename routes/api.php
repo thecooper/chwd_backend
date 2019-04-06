@@ -26,10 +26,6 @@ use App\DataSources\TwitterDataSource;
 use App\Jobs\SelectElectionToProcessNews;
 use App\News;
 
-Route::get('repo_test', function(TweetRepository $repo) {
-  return response()->json($repo->get_tweets_by_handles(['AOC', 'BetoORourke']), 200);
-});
-
 Route::middleware('auth.basic')->group(function () {
     Route::resource('users', 'UsersController')->only('index');
 
