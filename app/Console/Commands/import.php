@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 use App\DataSources\FileDataSourceConfig;
 use App\DataSources\Ballotpedia\BallotpediaSource;

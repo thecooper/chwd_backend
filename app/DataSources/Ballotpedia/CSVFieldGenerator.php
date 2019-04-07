@@ -2,6 +2,8 @@
 
 namespace App\DataSources\Ballotpedia;
 
+use Illuminate\Support\Facades\Log;
+
 class CSVFieldGenerator {
 
   public function __construct() {

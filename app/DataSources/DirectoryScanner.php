@@ -2,6 +2,8 @@
 
 namespace App\DataSources;
 
+use Illuminate\Support\Facades\Log;
+
 class DirectoryScanner
 {
     public function getFiles($directory)
