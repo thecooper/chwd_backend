@@ -200,7 +200,6 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertEquals($parsed_tweet->twitter_user->profile_image_url_https, 'https://imgur.com/somelink');
 
       $this->assertNotEmpty($parsed_tweet->entities);
-      $this->assertEquals(count($parsed_tweet->entities), 1);
       $this->assertEmpty($parsed_tweet->entities->urls);
     }
 
@@ -234,7 +233,6 @@ class TweetJsonSerializerTest extends TestCase
       $this->assertEquals($result->twitter_user->profile_image_url_https, $tweet->twitter_user->profile_image_url_https);
       
       // Assert entities properties serialized
-      $this->assertEquals(count($result->entities), 1);
       $this->assertEquals(count($result->entities->urls), 1);
 
       $this->assertEquals($result->entities->urls[0]->url, $tweet->entities->urls[0]->url);
