@@ -1,0 +1,28 @@
+version: 0.2
+
+run-as: root
+
+# env:
+  # variables:
+  #   key: "value"
+  #   key: "value"
+  # parameter-store:
+  #   key: "value"
+  #   key: "value"
+            
+phases:
+  pre_build:
+    commands:
+      - pip install awscli --upgrade --user
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region us-east-2 --no-include-email)
+      - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+  build:
+    commands:
+      - docker build -f Dockerfile.test -test chwd_test .
+      - docker run --name chwd_test_1 chwd_test
+  post_build:
+    commands:
+      - docker rm chwd_test_1
+      - docker rmi chwd_test
