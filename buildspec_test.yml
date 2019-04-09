@@ -20,7 +20,7 @@ phases:
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
-      - docker build -f Dockerfile.test -test chwd_test .
+      - docker build -f Dockerfile.test -t chwd_test .
       - docker run --name chwd_test_1 chwd_test
   post_build:
     commands:
