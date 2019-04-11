@@ -1,5 +1,5 @@
 ARG IMAGE=chwd_back_base
-FROM ${IMAGE}:latest as base
+FROM $IMAGE:latest as base
 
 FROM php:7.2.16-apache as serve
 WORKDIR /var/www/html
