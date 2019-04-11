@@ -1,18 +1,11 @@
-FROM php:7 as build
-RUN apt-get update -y && apt-get install -y libmcrypt-dev openssl git unzip libzip-dev
-RUN pecl install mcrypt-1.0.2
-RUN docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-WORKDIR /app
-COPY ./ /app
-RUN composer install
+ARG IMAGE=chwd_back_base
+FROM ${IMAGE}:latest as base
 
 FROM php:7.2.16-apache as serve
 WORKDIR /var/www/html
-COPY --from=build /app /var/www/html/
 RUN sed -i 's/var\/www\/html/var\/www\/html\/public/g' /etc/apache2/sites-available/000-default.conf
 RUN docker-php-ext-install mysqli pdo pdo_mysql
-RUN chown -R www-data:www-data .
-RUN php artisan config:clear
 RUN a2enmod rewrite
+COPY --from=base --chown=www-data:www-data /app /var/www/html/
+RUN php artisan config:clear
 EXPOSE 80

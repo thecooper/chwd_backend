@@ -1,0 +1,3 @@
+#! /bin/bash
+
+docker inspect chwd_db_1 | grep -o -m 1 -E '"IPAddress":\s\"(\d+\.\d+\.\d+\.\d+)"' | cut -d ' ' -f2 | cut -d '"' -f2

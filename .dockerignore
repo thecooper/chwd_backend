@@ -3,6 +3,8 @@ documentation
 vendor
 Dockerfile
 Dockerfile.*
-.env
-.env.staging
-.env.example
+buildspec*
+/storage/logs/*.log
+# .env
+# .env.staging
+# .env.example

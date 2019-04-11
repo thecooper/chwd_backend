@@ -7,4 +7,5 @@ if [ "$IP_ADDRESS" == "" ]; then
   return 1;
 fi
 
-docker exec chwd_db_1 mysql -h "$IP_ADDRESS" -u root -p'$ymph0nic' --execute "GRANT ALL PRIVILEGES ON chwd.* TO 'root'@'localhost'";
+docker exec chwd_db_1 mysql -h "$IP_ADDRESS" -u root -p'$ymph0nic' --execute "GRANT ALL PRIVILEGES ON chwd.* TO 'root'@'%'";
+# docker exec chwd_db_1 mysql -h "$IP_ADDRESS" -u root -p'$ymph0nic' --execute "Select User, Host from mysql.user";

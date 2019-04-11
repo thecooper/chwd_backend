@@ -1,0 +1,12 @@
+docker build -t chwd_back_base:latest -f Dockerfile.base . &&
+docker build -t chwd_back:latest . && 
+docker build -t chwd_back_test:latest -f Dockerfile.test . &&
+docker build -t chwd_back_migrate:latest -f Dockerfile.migrate .
+
+docker build -t chwd_db:latest -f Dockerfile.mysql .
+
+docker run --rm chwd_back_test &&
+docker run --rm chwd_back_migrate && 
+docker run -p 8000:80 --rm chwd_back
+
+docker run --rm -it chwd_back_base sh

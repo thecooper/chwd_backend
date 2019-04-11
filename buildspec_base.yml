@@ -1,5 +1,29 @@
 version: 0.2
 
+env:
+  variables: 
+    DB_HOST: ""
+    APP_NAME: "Change How We Engage"
+    APP_ENV: "stage"
+    APP_DEBUG: "false"
+    APP_KEY: ""
+    APP_URL: "http://staging.chwe.com"
+    BROADCAST_DRIVER: "log"
+    CACHE_DRIVER: "database"
+    SESSION_DRIVER: "file"
+    SESSION_LIFETIME: "120"
+    QUEUE_DRIVER: "sync"
+    MAIL_DRIVER: "smtp"
+  parameter-store:
+    GEOCODIO_API_KEY: "chwd-geocodio-api-key"
+    NEWS_API_KEY: "chwd-news-api-key"
+    DB_PASSWORD: "chwd-staging-rds-pass"
+    DB_USERNAME: "chwd-staging-rds-user"
+    TWITTER_API_KEY: "chwd-twitter-access-token"
+    TWITTER_API_SECRET: "chwd-twitter-access-token-secret"
+    TWITTER_ACCESS_TOKEN: "chwd-twitter-api-key"
+    TWITTER_ACCESS_TOKEN_SECRET: "chwd-twitter-api-secret"
+
 phases:
   pre_build:
     commands:
@@ -7,15 +31,14 @@ phases:
       - echo `aws --version`
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --region us-east-2 --no-include-email)
-      - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
-      - REPOSITORY_BASE_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging/base
+      - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging/base
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Entered the pre_build phase...
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build --build-arg IMAGE="REPOSITORY_BASE_URI" -t $REPOSITORY_URI:latest .
+      - docker build -t $REPOSITORY_URI:latest -f Dockerfile.base .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
@@ -26,6 +49,5 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"web","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo upgrading db-migrate task definitions
-      - aws ecs run-task --launch-type FARGATE --cluster staging-ecs-cluster --task-definition production_db_migrate --network-configuration "awsvpcConfiguration={subnets=[subnet-02763857e7a1fdfd7],securityGroups=[sg-0df80eae244078944,sg-0eceee044e4222d88,sg-0b3e6af363c30aca7]}"
 artifacts:
   files: imagedefinitions.json
