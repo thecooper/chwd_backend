@@ -17,7 +17,7 @@ phases:
       - docker pull $REPOSITORY_URI:base
       - echo Building the Docker image...
       - docker build --build-arg IMAGE="$REPOSITORY_URI:base" -f Dockerfile.migrate -t $REPOSITORY_URI:migrate .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag $REPOSITORY_URI:migrate $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
