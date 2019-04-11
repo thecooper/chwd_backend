@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables: 
-    DB_HOST: ""
+    DB_HOST: "chwd-staging.cdt9rxhp4fl3.us-east-2.rds.amazonaws.com"
     APP_NAME: "Change How We Engage"
     APP_ENV: "stage"
     APP_DEBUG: "false"
