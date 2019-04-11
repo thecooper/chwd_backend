@@ -13,6 +13,8 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - echo Pulling base image...
+      - docker pull $REPOSITORY_URI:base
       - echo Building the Docker image...
       - docker build --build-arg IMAGE="$REPOSITORY_URI:base" -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
