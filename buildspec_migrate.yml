@@ -11,7 +11,7 @@ phases:
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Fetching files from S3 bucket...
       - mkdir /imports
-      - $(aws s3 cp s3://ballotpedia-imports-us-east-2 /imports --recursive)
+      - aws s3 cp s3://ballotpedia-imports-us-east-2 /imports --recursive
       - echo Entered the pre_build phase...
   build:
     commands:
@@ -25,7 +25,7 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:migrate
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
       - printf '[{"name":"web","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
