@@ -10,6 +10,6 @@ phases:
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
-      - docker pull $REPOSITORY_URK:base
+      - docker pull $REPOSITORY_URI:base
       - docker build -f Dockerfile.test --build-arg IMAGE="$REPOSITORY_URI:base" -t chwd_back_test .
       - docker run --rm chwd_back_test
