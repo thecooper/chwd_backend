@@ -1,4 +1,4 @@
 ARG IMAGE=chwd_back_base
-FROM ${IMAGE}:latest as base
+FROM $IMAGE as base
 WORKDIR /app
 CMD php vendor/phpunit/phpunit/phpunit ./tests/Unit
