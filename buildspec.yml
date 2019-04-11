@@ -27,6 +27,6 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"web","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo upgrading db-migrate task definitions
-      - aws ecs run-task --launch-type FARGATE --cluster staging-ecs-cluster --task-definition production_db_migrate --network-configuration "awsvpcConfiguration={subnets=[subnet-02763857e7a1fdfd7],securityGroups=[sg-0df80eae244078944,sg-0eceee044e4222d88,sg-0b3e6af363c30aca7]}"
+      - aws ecs run-task --launch-type FARGATE --cluster staging-ecs-cluster --task-definition staging_web --network-configuration "awsvpcConfiguration={subnets=[subnet-02763857e7a1fdfd7],securityGroups=[sg-0df80eae244078944,sg-0eceee044e4222d88,sg-0b3e6af363c30aca7]}"
 artifacts:
   files: imagedefinitions.json
