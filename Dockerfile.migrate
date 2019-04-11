@@ -1,5 +1,6 @@
 ARG IMAGE=chwd_back_base
 FROM ${IMAGE}:latest as base
 # Turn off api and web routes as they are not needed for this image
+COPY /imports /imports
 RUN echo "<?php" > routes/api.php && echo "<?php" > routes/web.php;
 CMD ["php", "artisan", "migrate"]
