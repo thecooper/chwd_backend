@@ -9,4 +9,5 @@ phases:
     commands:
       - echo Running Unit Tests
       - docker run --rm $REPOSITORY_URI:latest ls -lah
+      - docker run --rm $REPOSITORY_URI:latest env
       - docker run --rm $REPOSITORY_URI:latest php vendor/phpunit/phpunit/phpunit ./tests/Unit
