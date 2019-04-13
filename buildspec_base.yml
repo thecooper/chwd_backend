@@ -41,4 +41,9 @@ phases:
       - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG --target=build .
   post_build:
     commands:
+      - echo Saving Build Artifact
+      - docker save $REPOSITORY_URI:latest > base_image.tar
       - echo Build completed on `date`
+artifacts:
+  files:
+    - base_image.tar
