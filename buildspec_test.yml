@@ -6,6 +6,7 @@ phases:
       # - pip install awscli --upgrade --user
       # - echo Logging in to Amazon ECR...
       # - $(aws ecr get-login --region us-east-2 --no-include-email)
+      - ls -lah
       - docker load --input base_image.tar
       - docker images
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
