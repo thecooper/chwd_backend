@@ -6,3 +6,4 @@ buildspec*
 /storage/logs/*.log
 .env*
 scripts
+!scripts/import_ballotpedia
