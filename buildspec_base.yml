@@ -47,4 +47,3 @@ phases:
 artifacts:
   files:
     - base_image.tar
-  name: base_image
