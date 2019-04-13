@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       - echo Loading Base image artifact into Docker
-      - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
+      - docker load --input $CODEBUILD_SRC_DIR_build_output/build_output.tar
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
   build:
     commands:
