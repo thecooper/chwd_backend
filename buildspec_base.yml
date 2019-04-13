@@ -32,6 +32,7 @@ phases:
       # - docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
       - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
       - composer install
+      - ls -lah
   pre_build:
     commands:
       - echo Entered the pre_build phase...

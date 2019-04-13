@@ -2,7 +2,7 @@ node_modules
 documentation
 Dockerfile*
 buildspec*
-/storage/logs/*.log
+storage/logs/*.log
 .env*
 scripts
 !scripts/import_ballotpedia

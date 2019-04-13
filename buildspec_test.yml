@@ -6,7 +6,7 @@ phases:
       - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - ls -lah .
-      - la -lah vendor
+      - ls -lah vendor
   build:
     commands:
       - echo Running Unit Tests
