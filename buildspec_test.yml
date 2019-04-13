@@ -3,14 +3,9 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      # - pip install awscli --upgrade --user
-      # - echo Logging in to Amazon ECR...
-      # - $(aws ecr get-login --region us-east-2 --no-include-email)
       - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
-      - docker images
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
   build:
     commands:
-      # - docker pull $REPOSITORY_URI:base
-      # - docker run -f Dockerfile.test --build-arg IMAGE="$REPOSITORY_URI:base" -t chwd_back_test .
+      - echo Running Unit Tests
       - docker run --rm $REPOSITORY_URI:latest php vendor/phpunit/phpunit/phpunit ./tests/Unit

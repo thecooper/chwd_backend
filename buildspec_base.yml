@@ -25,15 +25,18 @@ env:
     TWITTER_ACCESS_TOKEN_SECRET: "chwd-twitter-api-secret"
 
 phases:
+  install:
+    commands:
+      - apt-get update -y && apt-get install -y libmcrypt-dev openssl git unzip libzip-dev
+      - pecl install mcrypt-1.0.2
+      - docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
+      - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      - composer install
   pre_build:
     commands:
-      # - pip install awscli --upgrade --user
-      # - echo `aws --version`
-      # - echo Logging in to Amazon ECR...
-      # - $(aws ecr get-login --region us-east-2 --no-include-email)
+      - echo Entered the pre_build phase...
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo Entered the pre_build phase...
   build:
     commands:
       - echo Build started on `date`

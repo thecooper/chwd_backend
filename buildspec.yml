@@ -1,12 +1,14 @@
 version: 0.2
 
 phases:
-  pre_build:
+  install: 
     commands:
+      - echo Installing AWS CLI...
       - pip install awscli --upgrade --user
       - echo `aws --version`
-      - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --region us-east-2 --no-include-email)
+  pre_build:
+    commands:
+      - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Entered the pre_build phase...
@@ -16,9 +18,11 @@ phases:
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - echo Build completed on `date`
   post_build:
     commands:
-      - echo Build completed on `date`
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region us-east-2 --no-include-email)
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       # - docker push $REPOSITORY_URI:$IMAGE_TAG
