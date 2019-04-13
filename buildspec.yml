@@ -28,7 +28,7 @@ phases:
   install:
     commands:
       - echo Installing AWS CLI...
-      - pip install awscli --upgrade --user
+      # - pip install awscli --upgrade --user
       - echo `aws --version`
       - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
       - composer install
