@@ -1,10 +1,8 @@
 node_modules
 documentation
 vendor
-Dockerfile
-Dockerfile.*
+Dockerfile*
 buildspec*
 /storage/logs/*.log
-# .env
-# .env.staging
-# .env.example
+.env*
+scripts

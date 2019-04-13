@@ -3,13 +3,13 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - pip install awscli --upgrade --user
-      - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --region us-east-2 --no-include-email)
+      # - pip install awscli --upgrade --user
+      # - echo Logging in to Amazon ECR...
+      # - $(aws ecr get-login --region us-east-2 --no-include-email)
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
-      - docker pull $REPOSITORY_URI:base
-      - docker build -f Dockerfile.test --build-arg IMAGE="$REPOSITORY_URI:base" -t chwd_back_test .
-      - docker run --rm chwd_back_test
+      # - docker pull $REPOSITORY_URI:base
+      # - docker run -f Dockerfile.test --build-arg IMAGE="$REPOSITORY_URI:base" -t chwd_back_test .
+      - docker run --rm $REPOSITORY_URI:$IMAGE_TAG php vendor/phpunit/phpunit/phpunit ./tests/Unit

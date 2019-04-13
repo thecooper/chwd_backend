@@ -1,0 +1,5 @@
+#! /bin/bash
+
+mkdir imports
+aws s3 cp s3://s3://ballotpedia-imports-us-east-2 ./imports --recursive
+php artisan command:import
