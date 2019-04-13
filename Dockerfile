@@ -32,7 +32,8 @@ RUN pecl install mcrypt-1.0.2
 RUN docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 WORKDIR /app
-COPY ./ /app
+COPY ./ .
+COPY ./scripts/import_ballotpedia .
 RUN composer install
 
 FROM php:7.2.16-apache as serve
