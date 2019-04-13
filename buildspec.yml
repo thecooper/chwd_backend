@@ -3,11 +3,9 @@ version: 0.2
 env:
   variables: 
     DB_HOST: "chwd-staging.cdt9rxhp4fl3.us-east-2.rds.amazonaws.com"
-    APP_NAME: "Change How We Engage"
     APP_ENV: "stage"
-    APP_DEBUG: "false"
-    APP_KEY: ""
     APP_URL: "http://staging.chwe.com"
+    APP_DEBUG: "false"
     BROADCAST_DRIVER: "log"
     CACHE_DRIVER: "database"
     SESSION_DRIVER: "file"
@@ -34,6 +32,7 @@ phases:
       - composer install
   pre_build:
     commands:
+      - env
       - echo Entered the pre_build phase...
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
@@ -44,11 +43,9 @@ phases:
       - > 
         docker build
         --build-arg DB_HOST
-        --build-arg APP_NAME
         --build-arg APP_ENV
-        --build-arg APP_DEBUG
-        --build-arg APP_KEY
         --build-arg APP_URL
+        --build-arg APP_DEBUG
         --build-arg BROADCAST_DRIVER
         --build-arg CACHE_DRIVER
         --build-arg SESSION_DRIVER
