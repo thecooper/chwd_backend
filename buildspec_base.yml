@@ -27,9 +27,9 @@ env:
 phases:
   install:
     commands:
-      - apt-get update -y && apt-get install -y libmcrypt-dev openssl git unzip libzip-dev
-      - pecl install mcrypt-1.0.2
-      - docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
+      # - apt-get update -y && apt-get install -y libmcrypt-dev openssl git unzip libzip-dev
+      # - pecl install mcrypt-1.0.2
+      # - docker-php-ext-enable mcrypt && docker-php-ext-install pdo_mysql zip
       - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
       - composer install
   pre_build:
