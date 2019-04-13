@@ -1,6 +1,5 @@
 node_modules
 documentation
-vendor
 Dockerfile*
 buildspec*
 /storage/logs/*.log
