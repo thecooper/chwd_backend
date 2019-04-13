@@ -1,4 +1,5 @@
-FROM php:7 as build
+FROM php:7.2.16-apache
+
 ARG TWITTER_API_KEY=12345
 ARG TWITTER_API_SECRET=12345
 ARG TWITTER_ACCESS_TOKEN=12345
@@ -26,15 +27,11 @@ ENV TWITTER_API_KEY=$TWITTER_API_KEY \
   ELECTION_NEWS_DRY_RUN=$ELECTION_NEWS_DRY_RUN \
   BALLOTPEDIA_IMPORT_DIR=$BALLOTPEDIA_IMPORT_DIR \
   BALLOTPEDIA_IMPORT_LIMIT=$BALLOTPEDIA_IMPORT_LIMIT
-WORKDIR /app
-COPY ./ .
-COPY ./scripts/import_ballotpedia .
 
-FROM php:7.2.16-apache as serve
 WORKDIR /var/www/html
+COPY --chown=www-data:www-data ./ .
 RUN sed -i 's/var\/www\/html/var\/www\/html\/public/g' /etc/apache2/sites-available/000-default.conf
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 RUN a2enmod rewrite
-COPY --from=build --chown=www-data:www-data /app /var/www/html/
 RUN php artisan config:clear
 EXPOSE 80

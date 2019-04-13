@@ -3,11 +3,10 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - echo Loading Base image artifact into Docker
       - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
   build:
     commands:
       - echo Running Unit Tests
-      - docker run --rm $REPOSITORY_URI:latest ls -lah
-      - docker run --rm $REPOSITORY_URI:latest env
       - docker run --rm $REPOSITORY_URI:latest php vendor/phpunit/phpunit/phpunit ./tests/Unit

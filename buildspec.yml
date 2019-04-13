@@ -1,32 +1,59 @@
 version: 0.2
 
+env:
+  variables: 
+    DB_HOST: "chwd-staging.cdt9rxhp4fl3.us-east-2.rds.amazonaws.com"
+    APP_NAME: "Change How We Engage"
+    APP_ENV: "stage"
+    APP_DEBUG: "false"
+    APP_KEY: ""
+    APP_URL: "http://staging.chwe.com"
+    BROADCAST_DRIVER: "log"
+    CACHE_DRIVER: "database"
+    SESSION_DRIVER: "file"
+    SESSION_LIFETIME: "120"
+    QUEUE_DRIVER: "sync"
+    MAIL_DRIVER: "smtp"
+  parameter-store:
+    GEOCODIO_API_KEY: "chwd-geocodio-api-key"
+    NEWS_API_KEY: "chwd-news-api-key"
+    DB_PASSWORD: "chwd-staging-rds-pass"
+    DB_USERNAME: "chwd-staging-rds-user"
+    TWITTER_API_KEY: "chwd-twitter-access-token"
+    TWITTER_API_SECRET: "chwd-twitter-access-token-secret"
+    TWITTER_ACCESS_TOKEN: "chwd-twitter-api-key"
+    TWITTER_ACCESS_TOKEN_SECRET: "chwd-twitter-api-secret"
+
 phases:
-  install: 
+  install:
     commands:
       - echo Installing AWS CLI...
       - pip install awscli --upgrade --user
       - echo `aws --version`
+      - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      - composer install
   pre_build:
     commands:
-      - docker load --input $CODEBUILD_SRC_DIR_base_image/base_image.tar
+      - echo Entered the pre_build phase...
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo Entered the pre_build phase...
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
-      - echo Build completed on `date`
+      - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG .
   post_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --region us-east-2 --no-include-email)
       - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
-      # - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
       - printf '[{"name":"web","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo Saving Build Artifact
+      - docker save $REPOSITORY_URI:latest > build_output.tar
+      - echo Build completed on `date`
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - build_output.tar
+    - imagedefinitions.json
