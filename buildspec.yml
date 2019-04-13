@@ -41,7 +41,28 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG .
+      - docker build \
+        --build-arg DB_HOST \
+        --build-arg APP_NAME \
+        --build-arg APP_ENV \
+        --build-arg APP_DEBUG \
+        --build-arg APP_KEY \
+        --build-arg APP_URL \
+        --build-arg BROADCAST_DRIVER \
+        --build-arg CACHE_DRIVER \
+        --build-arg SESSION_DRIVER \
+        --build-arg SESSION_LIFETIME \
+        --build-arg QUEUE_DRIVER \
+        --build-arg MAIL_DRIVER \
+        --build-arg GEOCODIO_API_KEY \
+        --build-arg NEWS_API_KEY \
+        --build-arg DB_PASSWORD \
+        --build-arg DB_USERNAME \
+        --build-arg TWITTER_API_KEY \
+        --build-arg TWITTER_API_SECRET \
+        --build-arg TWITTER_ACCESS_TOKEN \
+        --build-arg TWITTER_ACCESS_TOKEN_SECRET \
+      -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG .
   post_build:
     commands:
       - echo Logging in to Amazon ECR...
