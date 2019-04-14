@@ -36,7 +36,7 @@ ENV APP_NAME="Change How We Engage" \
   BALLOTPEDIA_IMPORT_LIMIT=$BALLOTPEDIA_IMPORT_LIMIT
 
 WORKDIR /var/www/html
-RUN pip install awscli
+RUN apt-get install awscli
 COPY --chown=www-data:www-data ./ .
 RUN sed -i 's/var\/www\/html/var\/www\/html\/public/g' /etc/apache2/sites-available/000-default.conf
 RUN docker-php-ext-install mysqli pdo pdo_mysql
