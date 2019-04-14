@@ -5,7 +5,7 @@ env:
     DB_HOST: "chwd-staging.cdt9rxhp4fl3.us-east-2.rds.amazonaws.com"
     APP_ENV: "stage"
     APP_URL: "http://staging.chwe.com"
-    APP_DEBUG: "false"
+    APP_DEBUG: "true"
     BROADCAST_DRIVER: "log"
     CACHE_DRIVER: "database"
     SESSION_DRIVER: "file"
