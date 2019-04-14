@@ -32,7 +32,6 @@ phases:
       - composer install
   pre_build:
     commands:
-      - env
       - echo Entered the pre_build phase...
       - REPOSITORY_URI=469606566283.dkr.ecr.us-east-2.amazonaws.com/chwd-staging
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
