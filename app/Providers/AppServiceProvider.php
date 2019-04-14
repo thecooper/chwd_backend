@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 use App\DataSources\Ballotpedia\Ballotpedia_CSV_File_Source;
 use App\DataLayer\EloquentModelTransferManager;
