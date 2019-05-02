@@ -25,7 +25,7 @@ return [
         /*
          * The name for the exported Postman collection. Default: config('app.name')." API"
          */
-        'name' => null,
+        'name' => 'null',
 
         /*
          * The description for the exported Postman collection.
@@ -183,7 +183,7 @@ return [
      * If you want to use this, please be aware of the following rules:
      * - the image size must be 230 x 52
      */
-    'logo' => false,
+    'logo' => resource_path('views') . '/api/CHWE.png',
 
     /*
      * Name for the group of routes which do not have a @group set.

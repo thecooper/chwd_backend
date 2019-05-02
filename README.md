@@ -17,3 +17,4 @@
 
 1. https://laravel-apidoc-generator.readthedocs.io/en/latest/
 2. run `php artisan apidoc:generate` in the root folder
+3. NOTE: When this is run, it will reset the any changes we have manually made to the Info section
