@@ -40,6 +40,11 @@ class RedefineCandidatesTable extends Migration
               ->nullable()
               ->change();
           }
+
+          Schema::table('candidate_fragments', function(Blueprint $table) {
+            $table->index('name');
+            $table->index(['candidate_id', 'data_source_id']);
+          });
         });
       }
     }
@@ -67,6 +72,11 @@ class RedefineCandidatesTable extends Migration
           if(Schema::hasColumn('candidate_fragments', 'id')) {
             $table->dropColumn('id');
           }
+
+          Schema::table('candidate_fragments', function(Blurprint $table) {
+            $table->dropIndex('candidate_fragments_name_index');
+            $table->dropIndex('candidate_fragments_data_source_id_index');
+          });
         });
       }
       

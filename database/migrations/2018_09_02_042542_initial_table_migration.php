@@ -81,7 +81,7 @@ class InitialTableMigration extends Migration
                 $table->string('ballotpedia_url')->nullable();
                 $table->string('website_url')->nullable();
                 $table->string('donate_url')->nullable();
-                $table->string('facebook_profile')->nullable();
+                $table->string('facebook_profile', 200)->nullable();
                 $table->string('twitter_handle')->nullable();
                 $table->timestamps();
             });
@@ -104,7 +104,7 @@ class InitialTableMigration extends Migration
                 $table->string('ballotpedia_url')->nullable();
                 $table->string('website_url')->nullable();
                 $table->string('donate_url')->nullable();
-                $table->string('facebook_profile')->nullable();
+                $table->string('facebook_profile', 200)->nullable();
                 $table->string('twitter_handle')->nullable();
                 $table->integer('data_source_id')->unsigned();
                 $table->timestamps();

@@ -80,6 +80,11 @@ class BallotpediaSource {
         } catch (\Exception $ex) {
           Log::channel('import')->error("{$ex->getMessage()} -- $file:$current_line_count\n");
           $result->failed_line_count++;
+
+          if($result->failed_line_count > 100) {
+            Log::channel('import')->error("Error threshold (100) exceeded");
+            break;
+          }
         }
 
         $current_line_count++;

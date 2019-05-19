@@ -119,6 +119,7 @@ class CandidateRepositoryTest extends TestCase
 
     CandidateDTO::convert($candidate_model, $candidate_fragment);
     $candidate_fragment->data_source_id = $this->datasource->id;
+    dd($candidate_fragment);
     $candidate_fragment->save();
     
     $candidate = new \App\BusinessLogic\Models\Candidate();

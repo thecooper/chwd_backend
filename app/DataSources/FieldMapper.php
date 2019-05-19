@@ -29,7 +29,7 @@ class FieldMapper {
      *
      * @param string[] $fields
      * @param string $field_name
-     * @return void
+     * @return string || null
      */
     function get_field(array $fields, string $field_name) {
       // dd($this->index_mappings);

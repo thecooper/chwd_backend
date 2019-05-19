@@ -79,21 +79,16 @@ class CandidateRepository {
     }
     
     // Check to see if the entity find in the database already
-    $existing_candidate = $this->find($candidate); // DB Call
-    $candidate_fragment_model = CandidateFragment::where('data_source_id', $data_source_id);
-
-    if($candidate->id === null) {
-      $candidate_fragment_model = $candidate_fragment_model
-        ->where('name', $candidate->name)
-        ->where('district', $candidate->district)
-        ->first(); // DB Call
-    } else {
-      $candidate_fragment_model = $candidate_fragment_model
-        ->where('candidate_id', $candidate->id)
-        ->first(); // DB Call
+    $existing_candidate = null;
+    
+    if($candidate->id !== null) {
+      $existing_candidate = CandidateModel::where('id', $candidate->id)->get()->first();
     }
+    
+    $candidate_fragment_model = CandidateFragment::where('candidate_id', $candidate->id)
+      ->where('data_source_id', $data_source_id)->first();
 
-    if($candidate_fragment_model !== null) {
+    if(count($candidate_fragment_model) > 0) {
       // Preserve id so that when the id gets overwritten during conversion, it can be fixed
       $fragment_id = $candidate_fragment_model->id;
       CandidateDTO::convert($candidate, $candidate_fragment_model);
@@ -111,9 +106,10 @@ class CandidateRepository {
     }
     
     if($existing_candidate != null) {
+      $existing_candidate_id = $existing_candidate->id;
+      
       // combine candidate fragments
-      $fragments = CandidateFragment::where('name', $candidate_fragment_model->name)
-        ->where('district', $candidate_fragment_model->district)
+      $fragments = CandidateFragment::where('candidate_id', $candidate_fragment_model->id)
         ->get()
         ->toArray(); // DB Call
 
@@ -122,10 +118,12 @@ class CandidateRepository {
       $priorities = $this->get_priorities(); // DB Call (Once)
         
       $candidate = $this->fragment_combiner->combine($fragments, $priorities);
-      $candidate->id = $existing_candidate->id;
+      // $candidate->id = $existing_candidate->id;
       
       CandidateDTO::convert($candidate, $existing_candidate);
 
+      $existing_candidate->id = $existing_candidate_id;
+      
       $existing_candidate->save(); // DB Call
       
       CandidateDTO::convert($existing_candidate, $candidate);
@@ -148,12 +146,6 @@ class CandidateRepository {
 
       return $candidate;
     }
-  }
-   
-  function find(Candidate $candidate) {
-    return CandidateModel::where('name', $candidate->name)
-      ->where('district', $candidate->district)
-      ->first();
   }
   
   function delete($id) {

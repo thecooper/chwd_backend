@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 use App\DataSources\FieldMapper;
 use App\DataSources\IndexMapping;
+use App\DataLayer\BallotpediaCandidates;
 
 use App\BusinessLogic\Models\Election;
 use App\BusinessLogic\Models\Candidate;
@@ -36,6 +37,7 @@ class BallotpediaDataProcessor {
     $this->district_identity_generator = $district_identity_generator;
     $this->initialized = false;
 
+    // TODO: extract this to another class that can dynamically determine the mapping to be used
     // Mapping for fields prior to 11/09
     $this->field_mapper->load([
       new IndexMapping(0, 'state'),
@@ -109,10 +111,8 @@ class BallotpediaDataProcessor {
       
       $end_candidate_processing = microtime(true);
       $timediff = ($end_candidate_processing - $start_candidate_processing) * 1000;
-      // Log::channel('import')->debug("[Benchmark] Candidate Row Processing: {$timediff} milliseconds");
     } catch (\Exception $ex) {
-      // Log::channel(['import'])->warn("Unable to save candidate: {$ex->getMessage()}");
-      throw new \Exception("Unable to save candidate: {$ex->getMessage()}");
+      throw new \Exception("Unable to save candidate: {$ex->getMessage()}", $ex->getCode(), $ex);
     }
   }
 
@@ -171,18 +171,26 @@ class BallotpediaDataProcessor {
 
     $candidate = new Candidate();
 
+    $candidate_ballotpedia_id = $this->field_mapper->get_field($fields, 'candidates_id');
+    $retrieved_candidate_id = $this->get_chwd_candidate_id($candidate_ballotpedia_id);
+    
+    $candidate->id = $retrieved_candidate_id;
+    
     CandidateLoader::load($candidate, $candidate_fields);
 
-    $this->correct_candidate($candidate);
+    $this->correct_candidate($candidate, $fields);
 
-    if($this->field_mapper->get_field($fields, 'too_close_to_call') === 'general') {
-      $candidate->election_status = 'Too Close To Call';
-    }
-    
     $this->candidate_repository->save($candidate, $this->data_source_id);
+
+    if($retrieved_candidate_id === null) {
+      $ballotpedia_candidates = new BallotpediaCandidates();
+      $ballotpedia_candidates->ballotpedia_candidate_id = $candidate_ballotpedia_id;
+      $ballotpedia_candidates->candidate_id = $candidate->id;
+      $ballotpedia_candidates->save();
+    }
   }
   
-  private function correct_candidate(Candidate $candidate) {
+  private function correct_candidate(Candidate $candidate, $fields) {
     if($candidate->election_status === 'NULL' || $candidate->election_status === '' || $candidate->election_status === null) {
       Log::channel('import')->warn("Election status for candidate {$candidate->name} was converted from {$candidate->election_status} to 'Unknown'");
       $candidate->election_status = 'Unknown';
@@ -192,6 +200,10 @@ class BallotpediaDataProcessor {
       Log::channel('import')->warn("Party affiliation for candidate {$candidate->name} was converted from {$candidate->party_affiliation} to 'Independent'");
       $candidate->party_affiliation = 'Independent';
     }
+
+    if($this->field_mapper->get_field($fields, 'too_close_to_call') === 'general') {
+      $candidate->election_status = 'Too Close To Call';
+    }
   }
 
   private function translate_candidate_fields(array $fields) {
@@ -199,6 +211,7 @@ class BallotpediaDataProcessor {
 
     return [
       'id' => null,
+      'ballotpedia_candidate_id' => $this->field_mapper->get_field($fields, 'candidates_id'),
       'name' => $this->field_mapper->get_field($fields, 'name'),
       'party_affiliation' => $this->field_mapper->get_field($fields, 'party_affiliation'),
       'election_status' => $this->field_mapper->get_field($fields, 'general_election_status') ?: 'On the Ballot',
@@ -215,6 +228,11 @@ class BallotpediaDataProcessor {
       'twitter_handle' => $this->field_mapper->get_field($fields, 'twitter_handle'),
       'election_id' => null,
     ];
+  }
+
+  private function get_chwd_candidate_id(int $ballotpedia_candidates_id) {
+    $candidate_ids = BallotpediaCandidates::where('ballotpedia_candidate_id', $ballotpedia_candidates_id)->get()->first();
+    return $candidate_ids === null ? null : $candidate_ids->candidate_id;
   }
 
   private function generate_election_cache_key(array $fields) {
