@@ -6,11 +6,14 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+use App\DataLayer\BallotpediaCandidates;
+
 use App\BusinessLogic\ElectionFragmentCombiner;
 use App\BusinessLogic\Repositories\ElectionRepository;
 use App\BusinessLogic\CandidateFragmentCombiner;
 use App\BusinessLogic\Repositories\CandidateRepository;
 use App\BusinessLogic\Models\Election;
+use App\BusinessLogic\Models\Candidate;
 use App\BusinessLogic\Validation\CandidateValidation;
 
 use App\DataSources\FieldMapper;
@@ -88,6 +91,9 @@ class BallotpediaDataProcessorTest extends TestCase
 
     $election = new Election();
     $election->id = 1;
+
+    $candidate = new Candidate();
+    $candidate->id = 1;
     
     $election_repo_mock->expects($this->once())
       ->method('save')
@@ -106,6 +112,10 @@ class BallotpediaDataProcessorTest extends TestCase
       },
       $this->greaterThan(0)))
       ->willReturn($election);
+
+    $candidate_repo_mock
+      ->method('save')
+      ->willReturn($candidate);;
 
     $inputs = $this->generateInputs();
 

@@ -180,7 +180,7 @@ class BallotpediaDataProcessor {
 
     $this->correct_candidate($candidate, $fields);
 
-    $this->candidate_repository->save($candidate, $this->data_source_id);
+    $candidate = $this->candidate_repository->save($candidate, $this->data_source_id);
 
     if($retrieved_candidate_id === null) {
       $ballotpedia_candidates = new BallotpediaCandidates();

@@ -86,7 +86,7 @@ class CandidateRepositoryTest extends TestCase
     // Act
     $saved_candidate = $this->repo->save($candidate, $this->datasource->id);
     $fragments = \App\DataLayer\Candidate\CandidateFragment::all(); // ('candidate_id', $saved_candidate->id);
-
+    
     // Assert
     $this->assertNotNull($saved_candidate->id);
     $this->assertSameValues($candidate, $saved_candidate);
@@ -115,17 +115,15 @@ class CandidateRepositoryTest extends TestCase
       'election_id' => $this->election->id
     ]);
 
-    $candidate_fragment = factory(\App\DataLayer\Candidate\CandidateFragment::class)->make();
+    $candidate_fragment = new \App\BusinessLogic\Models\Candidate();
 
     CandidateDTO::convert($candidate_model, $candidate_fragment);
-    $candidate_fragment->data_source_id = $this->datasource->id;
-    dd($candidate_fragment);
-    $candidate_fragment->save();
+    $candidate_fragment->id = null;
+    $candidate_fragment = $this->repo->save($candidate_fragment, $this->datasource->id);
     
     $candidate = new \App\BusinessLogic\Models\Candidate();
-
-    CandidateDTO::convert($candidate_model, $candidate);
-    $candidate->id = null;
+    CandidateDTO::convert($candidate_fragment, $candidate);
+    $candidate->id = $candidate_fragment->id;
     $candidate->donate_url = 'https://www.yahoo.com';
     $candidate->facebook_profile = null;
 

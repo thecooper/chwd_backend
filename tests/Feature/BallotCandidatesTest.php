@@ -255,13 +255,12 @@ class BallotCandidatesTest extends TestCase
       ]);
 
       $user_ballot_candidate_repository = new UserBallotCandidateRepository();
-
+      
       // Act
       $response = $this->actingAs($this->user)
-        ->put('/api/users/me/ballots/'.$this->ballot->id.'/candidates/' . $candidate2->id);
+        ->put("/api/users/me/ballots/{$this->ballot->id}/candidates/" . $candidate2->id);
 
       // Assert
-
       $response->assertStatus(201);
 
       $candidate1_selected = $user_ballot_candidate_repository->candidate_is_selected($this->ballot->id, $candidate1->id);
@@ -290,7 +289,7 @@ class BallotCandidatesTest extends TestCase
       ]);
 
       $user_ballot_candidate_repository = new UserBallotCandidateRepository();
-
+      
       // Act
       $response = $this->actingAs($this->user)
         ->delete("/api/users/me/ballots/{$this->ballot->id}/candidates/{$candidate->id}");

@@ -32,7 +32,6 @@ class FieldMapper {
      * @return string || null
      */
     function get_field(array $fields, string $field_name) {
-      // dd($this->index_mappings);
       if(array_key_exists($field_name, $this->index_mappings)) {
         $field_index = $this->index_mappings[$field_name];
         $field_value = $fields[$field_index];

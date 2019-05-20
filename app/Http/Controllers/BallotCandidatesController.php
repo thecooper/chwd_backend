@@ -71,11 +71,11 @@ class BallotCandidatesController extends Controller
     public function update(Request $request, Ballot $ballot, $id)
     {
       $candidate = $this->candidate_repository->get($id);
-      
+
       if($candidate == null) {
           return response()->json("Candidate not found", 404);
       }
-
+      
       $this->ballot_manager->select_candidate($ballot, $candidate);
 
       return Response::make(null, 201);

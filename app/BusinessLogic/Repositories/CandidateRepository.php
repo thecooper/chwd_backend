@@ -51,6 +51,7 @@ class CandidateRepository {
   function get($id) {
     $candidate_model = CandidateModel::find($id);
     $candidate = $this->transferModel($candidate_model);
+    $candidate->id = $id;
     return $candidate;
   }
   
@@ -78,72 +79,55 @@ class CandidateRepository {
       throw new Exception("Cannot save candidate - $validation_result");
     }
     
-    // Check to see if the entity find in the database already
-    $existing_candidate = null;
+    $priorities = $this->get_priorities(); // DB Call (Once)
     
+    // Check if candidate already exists in DB. If so, save fragment, then update candidate from fragment combiner
+    // Otherwise, save new candidate and then save fragment.
     if($candidate->id !== null) {
-      $existing_candidate = CandidateModel::where('id', $candidate->id)->get()->first();
-    }
-    
-    $candidate_fragment_model = CandidateFragment::where('candidate_id', $candidate->id)
-      ->where('data_source_id', $data_source_id)->first();
+      $existing_candidate = CandidateModel::find($candidate->id);
 
-    if(count($candidate_fragment_model) > 0) {
-      // Preserve id so that when the id gets overwritten during conversion, it can be fixed
-      $fragment_id = $candidate_fragment_model->id;
-      CandidateDTO::convert($candidate, $candidate_fragment_model);
-      $candidate_fragment_model->id = $fragment_id;
-      
-      $candidate_fragment_model->save(); // DB Call
-    } else {
-      // create new candidate fragment database model
-      $candidate_fragment_model = new CandidateFragment();
-      $candidate_fragment_model->data_source_id = $data_source_id;
-      CandidateDTO::convert($candidate, $candidate_fragment_model);
-      
-      // save fragment
-      $save_successful = $candidate_fragment_model->save(); // DB Call
-    }
-    
-    if($existing_candidate != null) {
       $existing_candidate_id = $existing_candidate->id;
+      $candidate_fragment = CandidateFragment::where('candidate_id', $existing_candidate->id)
+        ->where('data_source_id', $data_source_id)->first();
+
+      // Check if fragment is coming from new datasource. If so, save new fragment, otherwise update existing.
+      if($candidate_fragment === null) {
+        $candidate_fragment = new CandidateFragment();
+      }
+
+      CandidateDTO::convert($candidate, $candidate_fragment);
+      $candidate_fragment->candidate_id = $candidate->id;
+      $candidate_fragment->data_source_id = $data_source_id;
+      $candidate_fragment->save();
       
       // combine candidate fragments
-      $fragments = CandidateFragment::where('candidate_id', $candidate_fragment_model->id)
+      $fragments = CandidateFragment::where('candidate_id', $existing_candidate->id)
         ->get()
         ->toArray(); // DB Call
-
-      // TODO: Refactor this out to another repo
-      // TODO: Ensure that this is being tested correctly. Logic may not be correct
-      $priorities = $this->get_priorities(); // DB Call (Once)
         
       $candidate = $this->fragment_combiner->combine($fragments, $priorities);
-      // $candidate->id = $existing_candidate->id;
-      
+      $candidate->id = $existing_candidate_id;
       CandidateDTO::convert($candidate, $existing_candidate);
 
       $existing_candidate->id = $existing_candidate_id;
-      
       $existing_candidate->save(); // DB Call
-      
-      CandidateDTO::convert($existing_candidate, $candidate);
 
       return $candidate;
     } else {
-      // create new candidate db model object
+      // Create new candidate
       $candidate_model = new CandidateModel();
-
-      // fill in properties from entity data passed in
       CandidateDTO::convert($candidate, $candidate_model);
-      // save candidate db model
-      $candidate_model->save(); // DB Call
-
-      // Save generated candidate id to candidate_fragment
+      $candidate_model->save();
+      
+      // Create and save new candidate fragment
+      $candidate_fragment_model = new CandidateFragment();
+      CandidateDTO::convert($candidate, $candidate_fragment_model);
       $candidate_fragment_model->candidate_id = $candidate_model->id;
-      $candidate_fragment_model->save(); // DB Call
-
+      $candidate_fragment_model->data_source_id = $data_source_id;
+      $candidate_fragment_model->save();
+      
       CandidateDTO::convert($candidate_model, $candidate);
-
+      $candidate->id = $candidate_model->id;
       return $candidate;
     }
   }
@@ -170,7 +154,7 @@ class CandidateRepository {
         ->where('user_ballot_id', $ballot_id)
         ->whereIn('candidate_id', $race_candidate_ids)
         ->delete();
-  
+        
     DB::table('user_ballot_candidates')
         ->insert([
             'user_ballot_id'=>$ballot_id,

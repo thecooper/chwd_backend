@@ -82,7 +82,7 @@ class BallotManager {
     }
 
     $filtered_elections_candidates = $this->ballot_candidate_filter->filter_candidates_by_ballot_location($elections_candidates, $ballot);
-
+    
     $selected_candidate_ids = $this->user_ballot_candidate_repository->get_selected_candidate_ids($ballot->id);
 
     $this->ballot_candidate_manager->populate_selected_candidates($filtered_elections_candidates, $selected_candidate_ids);
