@@ -90,14 +90,20 @@ class CandidateRepository {
       $candidate_fragment = CandidateFragment::where('candidate_id', $existing_candidate->id)
         ->where('data_source_id', $data_source_id)->first();
 
+      $candidate_fragment_id = null;
+        
       // Check if fragment is coming from new datasource. If so, save new fragment, otherwise update existing.
       if($candidate_fragment === null) {
         $candidate_fragment = new CandidateFragment();
+      } else {
+        $candidate_fragment_id = $candidate_fragment->id;
       }
 
       CandidateDTO::convert($candidate, $candidate_fragment);
+      $candidate_fragment->id = $candidate_fragment_id;
       $candidate_fragment->candidate_id = $candidate->id;
       $candidate_fragment->data_source_id = $data_source_id;
+
       $candidate_fragment->save();
       
       // combine candidate fragments

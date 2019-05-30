@@ -34,8 +34,33 @@ class BallotpediaSource {
     $import_limit = $config->import_limit;
     $debugging = env("APP_DEBUG", false);
 
-    $files = $this->directory_scanner->getFiles($input_directory);
+    $regexp = '/Ballotpedia_data_for_CHWD_([\d]{4}\-[\d]{2}\-[\d]{2})/';
 
+    $match_predicate = function($file) use ($regexp) {
+      return preg_match($regexp, $file) === 1;      
+    };
+
+    $file_sort = function($fileA, $fileB) use ($regexp) {
+      $file_A_matches = [];
+      $file_B_matches = [];
+      
+      preg_match($regexp, $fileA, $file_A_matches);
+      preg_match($regexp, $fileB, $file_B_matches);
+
+      $file_A_date = strtotime($file_A_matches[1]);
+      $file_B_date = strtotime($file_B_matches[1]);
+
+      if($file_A_date > $file_B_date) {
+        return 1;
+      } elseif ($file_A_date < $file_B_date) {
+        return -1;
+      } else {
+        return 0;
+      }
+    };
+    
+    $files = $this->directory_scanner->getFiles($input_directory, $match_predicate, $file_sort);
+    
     $ballotpedia_data_source = DataSource::where('name', 'ballotpedia')->first();
         
     if($ballotpedia_data_source == null) {
@@ -63,6 +88,7 @@ class BallotpediaSource {
 
         // Skip the first line
         if($first_line) {
+          $this->data_processor->load_headers($fields);
           $first_line = false;
           continue;
         }

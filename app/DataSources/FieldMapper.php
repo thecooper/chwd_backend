@@ -14,7 +14,7 @@ class FieldMapper {
      *
      * @param IndexMapping[] $index_mappings
      */
-    function load(array $index_mappings) {
+    public function load(array $index_mappings) {
       foreach($index_mappings as $index_mapping) {
         if(!$index_mapping instanceof IndexMapping) {
           throw new Exception('Array passed in to FieldMapper#__construct should be of type IndexMapping[]');
@@ -24,6 +24,18 @@ class FieldMapper {
       }
     }
 
+    public function load_columns(array $fields) {
+      $index_mappings = [];
+      
+      $index = 0;
+      
+      foreach($fields as $field) {
+        array_push($index_mappings, new IndexMapping($index++, $field));
+      }
+  
+      $this->load($index_mappings);
+    }
+    
     /**
      * get_field
      *

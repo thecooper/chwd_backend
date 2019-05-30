@@ -36,55 +36,10 @@ class BallotpediaDataProcessor {
     $this->candidate_repository = $candidate_repository;
     $this->district_identity_generator = $district_identity_generator;
     $this->initialized = false;
-
-    // TODO: extract this to another class that can dynamically determine the mapping to be used
-    // Mapping for fields prior to 11/09
-    $this->field_mapper->load([
-      new IndexMapping(0, 'state'),
-      new IndexMapping(1, 'name'),
-      new IndexMapping(2, 'first_name'),
-      new IndexMapping(3, 'last_name'),
-      new IndexMapping(4, 'ballotpedia_url'),
-      new IndexMapping(5, 'candidates_id'),
-      new IndexMapping(6, 'party_affiliation'),
-      new IndexMapping(7, 'race_id'),
-      new IndexMapping(8, 'general_election_date'),
-      new IndexMapping(9, 'general_runoff_election_date'),
-      new IndexMapping(10, 'office_district_id'),
-      new IndexMapping(11, 'district_name'),
-      new IndexMapping(12, 'district_type'),
-      new IndexMapping(13, 'office_level'),
-      new IndexMapping(14, 'office'),
-      new IndexMapping(15, 'is_incumbent'),
-      new IndexMapping(16, 'general_election_status'),
-      new IndexMapping(17, 'website_url'),
-      new IndexMapping(18, 'facebook_profile'),
-      new IndexMapping(19, 'twitter_handle')
-    ]);
-
-    // $this->field_mapper->load([
-    //   new IndexMapping(0, 'state'),
-    //   new IndexMapping(1, 'name'),
-    //   new IndexMapping(2, 'first_name'),
-    //   new IndexMapping(3, 'last_name'),
-    //   new IndexMapping(4, 'ballotpedia_url'),
-    //   new IndexMapping(5, 'candidates_id'),
-    //   new IndexMapping(6, 'party_affiliation'),
-    //   new IndexMapping(7, 'race_id'),
-    //   new IndexMapping(8, 'too_close_to_call'),
-    //   new IndexMapping(9, 'general_election_date'),
-    //   new IndexMapping(10, 'general_runoff_election_date'),
-    //   new IndexMapping(11, 'office_district_id'),
-    //   new IndexMapping(12, 'district_name'),
-    //   new IndexMapping(13, 'district_type'),
-    //   new IndexMapping(14, 'office_level'),
-    //   new IndexMapping(15, 'office'),
-    //   new IndexMapping(16, 'is_incumbent'),
-    //   new IndexMapping(17, 'general_election_status'),
-    //   new IndexMapping(18, 'website_url'),
-    //   new IndexMapping(19, 'facebook_profile'),
-    //   new IndexMapping(20, 'twitter_handle')
-    // ]);
+  }
+  
+  public function load_headers($fields) {
+    $this->field_mapper->load_columns($fields);
   }
   
   public function initialize(int $data_source_id) {
@@ -173,7 +128,7 @@ class BallotpediaDataProcessor {
 
     $candidate_ballotpedia_id = $this->field_mapper->get_field($fields, 'candidates_id');
     $retrieved_candidate_id = $this->get_chwd_candidate_id($candidate_ballotpedia_id);
-    
+
     $candidate->id = $retrieved_candidate_id;
     
     CandidateLoader::load($candidate, $candidate_fields);
@@ -213,19 +168,19 @@ class BallotpediaDataProcessor {
       'id' => null,
       'ballotpedia_candidate_id' => $this->field_mapper->get_field($fields, 'candidates_id'),
       'name' => $this->field_mapper->get_field($fields, 'name'),
-      'party_affiliation' => $this->field_mapper->get_field($fields, 'party_affiliation'),
-      'election_status' => $this->field_mapper->get_field($fields, 'general_election_status') ?: 'On the Ballot',
+      'party_affiliation' => $this->field_mapper->get_field($fields, 'party'),
+      'election_status' => $this->field_mapper->get_field($fields, 'general election status') ?: 'On the Ballot',
       'office' => $this->field_mapper->get_field($fields, 'office'),
       'office_level' => $this->field_mapper->get_field($fields, 'office_level'),
-      'is_incumbent' => strtolower($this->field_mapper->get_field($fields, 'is_incumbent')) === 'yes',
+      'is_incumbent' => strtolower($this->field_mapper->get_field($fields, 'is incumbent?')) === 'yes',
       'district_type' => $this->field_mapper->get_field($fields, 'district_type'),
       'district' => $district_name,
       'district_identifier' => $this->district_identity_generator->generate($district_name),
       'ballotpedia_url' => $this->field_mapper->get_field($fields, 'ballotpedia_url'),
-      'website_url' => $this->field_mapper->get_field($fields, 'website_url'),
+      'website_url' => $this->field_mapper->get_field($fields, 'website'),
       'donate_url' => null,
-      'facebook_profile' => $this->field_mapper->get_field($fields, 'facebook_profile'),
-      'twitter_handle' => $this->field_mapper->get_field($fields, 'twitter_handle'),
+      'facebook_profile' => $this->field_mapper->get_field($fields, 'facebook'),
+      'twitter_handle' => $this->field_mapper->get_field($fields, 'twitter'),
       'election_id' => null,
     ];
   }
